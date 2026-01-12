@@ -74,7 +74,6 @@ class ConfigParser:
             if (len(opt) != 2):
                 continue
             config[opt[0].lower()] = opt[1]
-        # print(config)
         try:
             return (Config.model_validate(config))
         except ValidationError as e:

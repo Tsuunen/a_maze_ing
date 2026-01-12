@@ -2,6 +2,7 @@ MAIN=a_maze_ing.py
 MYPY_FLAGS=--warn-return-any --warn-unused-ignores \
 		   --ignore-missing-imports --disallow-untyped-defs \
 		   --check-untyped-defs
+FILES=$(MAIN) srcs/
 
 run:
 	@python3 $(MAIN)
@@ -16,9 +17,9 @@ clean:
 	rm -rf __pycache__ .mypy_cache
 
 lint:
-	flake8 .
-	mypy . $(MYPY_FLAGS)
+	@flake8 $(FILES)
+	@mypy $(FILES) $(MYPY_FLAGS)
 
 lint-strict:
-	flake8 .
-	mypy . --strict
+	@flake8 $(FILES)
+	@mypy $(FILES) $(MYPY_FLAGS) --strict
