@@ -10,7 +10,7 @@ debug:
 	@python3 -m pdb $(MAIN)
 
 install:
-	@echo "Nothing to install"
+	pip install -r requirement.txt
 
 clean:
 	rm -rf __pycache__ .mypy_cache
