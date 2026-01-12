@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 from typing import Tuple, Iterator
 from pydantic import (BaseModel, Field, field_validator, FieldValidationInfo,
-                      ValidationError)
+                      ValidationError, model_validator)
 
 
 class Config(BaseModel):
@@ -25,6 +25,23 @@ class Config(BaseModel):
             return ((int(opt[0]), int(opt[1])))
         except ValueError:
             raise ValueError(f"{info.field_name} must contain integers")
+
+    @model_validator(mode="after")
+    def check_valid_coords(self):
+        if (self.entry == self.exit):
+            raise ValueError("entry and exit must not overlap")
+        if (self.entry[0] < 0 or self.entry[0] > self.width or
+            self.entry[1] < 0 or self.entry[1] > self.height or
+            self.exit[0] < 0 or self.exit[0] > self.width or
+                self.exit[1] < 0 or self.exit[1] > self.height):
+            raise ValueError("coords are out of bound")
+        if (self.entry[0] not in [0, self.width] and
+                self.entry[1] not in [0, self.height]):
+            raise ValueError("entry is not on the maze border")
+        if (self.exit[0] not in [0, self.width] and
+                self.exit[1] not in [0, self.height]):
+            raise ValueError("exit is not on the maze border")
+        return (self)
 
 
 class ConfigParser:

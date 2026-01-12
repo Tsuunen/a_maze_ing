@@ -3,8 +3,8 @@ HEIGHT=15
 	#Ceci est un commentaire
 
 
-		ENTRY=0,0
-EXIT=19,14
+		ENTRY=1, 15
+EXIT=10, 10
 
 OUTPUT_FILE=maze.txt
 PERFECT=True
