@@ -3,7 +3,7 @@ HEIGHT=15
 	#Ceci est un commentaire
 
 
-		ENTRY=1, 15
+		ENTRY=0, 15
 EXIT=10, 15
 
 OUTPUT_FILE=maze.txt
