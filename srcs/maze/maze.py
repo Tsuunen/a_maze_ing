@@ -37,13 +37,40 @@ class Maze:
                 if (not line):
                     break
                 for c in line:
-                    # self.put_pixel(x * self.width // cols,
-                    #                y * self.height // rows, 0xFFFFFFFF)
                     self.put_cell(c, x * cell_size,
                                   y * cell_size, cell_size)
                     x += 1
                 x = 0
                 y += 1
+            count = 0
+            for line in file:
+                line = line.rstrip("\n")
+                if (count < 2):
+                    coords = line.split(",")
+                    if (len(coords) != 2):
+                        continue
+                    coords = [int(c) for c in coords]
+                    if (count == 0):
+                        x, y = coords[0], coords[1]
+                        self.fill_cell(coords[0] * cell_size, coords[1]
+                                       * cell_size, cell_size, 0x00FF00FF)
+                    else:
+                        self.fill_cell(coords[0] * cell_size, coords[1]
+                                       * cell_size, cell_size, 0xFF0000FF)
+                    count += 1
+                    continue
+                for j in range(len(line)):
+                    if (line[j] == "S"):
+                        y += 1
+                    elif (line[j] == "N"):
+                        y -= 1
+                    elif (line[j] == "W"):
+                        x -= 1
+                    elif (line[j] == "E"):
+                        x += 1
+                    if (j != len(line) - 1):
+                        self.fill_cell(x * cell_size, y * cell_size,
+                                       cell_size, 0xFFFFFF80)
 
     def put_cell(self, c: str, cell_x: int, cell_y: int,
                  cell_size: int) -> None:
@@ -56,14 +83,21 @@ class Maze:
             self.put_line(cell_x, cell_y + cell_size, cell_size)
         if ((c >> 3) & 1):
             self.put_col(cell_x, cell_y, cell_size)
+        if (c == 0xF):
+            self.fill_cell(cell_x, cell_y, cell_size)
 
-    def put_line(self, x: int, y: int, size: int):
+    def put_line(self, x: int, y: int, size: int, color: int = 0xFFFFFFFF):
         for i in range(size):
-            self.put_pixel(x + i, y, self.wall_color)
+            self.put_pixel(x + i, y, color)
 
     def put_col(self, x: int, y: int, size: int):
         for i in range(size):
             self.put_pixel(x, y + i, self.wall_color)
+
+    def fill_cell(self, cell_x: int, cell_y: int, cell_size: int,
+                  color: int = 0xFFFFFFFF) -> None:
+        for i in range(cell_size - 3):
+            self.put_line(cell_x + 2, cell_y + i + 2, cell_size - 3, color)
 
     def get_maze_info(self) -> tuple[int, int]:
         with open(self.file_path, "r") as file:
