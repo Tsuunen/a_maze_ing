@@ -12,23 +12,39 @@ class MazeDisplay:
                 f"{file_path} does not exist or is not readable")
         self.width = 1080
         self.height = 720
+        self.win_height = 820
         self.m = Mlx()
         self.mlx = self.m.mlx_init()
-        self.win = self.m.mlx_new_window(self.mlx, self.width, self.height,
+        self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
         self.img = self.m.mlx_new_image(self.mlx, self.width, self.height)
         self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
         self.bpp = bpp // 8
 
     def init(self):
+        self.m.mlx_key_hook(self.win, self.key_pressed, None)
+        self.m.mlx_string_put(self.mlx, self.win, 15, 10,
+                              0xFFFFFFFF, "A Maze Ing")
+        self.m.mlx_string_put(self.mlx, self.win, 15, 790, 0xFFFFFFFF,
+                              "r: Regenerate a new maze    p: Toggle path    "
+                              + "q: quit")
         self.m.mlx_hook(self.win, 33, 0,
                         lambda d: self.m.mlx_loop_exit(self.mlx), None)
         self.draw()
         cell_size, cols, rows = self.get_maze_info()
         self.m.mlx_put_image_to_window(self.mlx, self.win, self.img,
                                        (self.width - cols * cell_size) // 2,
+                                       50 +
                                        (self.height - rows * cell_size) // 2)
         self.m.mlx_loop(self.mlx)
+
+    def key_pressed(self, keycode: int, _):
+        if (keycode == 113):  # 'q'
+            self.m.mlx_loop_exit(self.mlx)
+        elif (keycode == 112):  # 'p'
+            print("Toggle path")
+        elif (keycode == 114):  # 'r'
+            print("Regenerate maze")
 
     def draw(self):
         with open(self.file_path, "r") as file:
