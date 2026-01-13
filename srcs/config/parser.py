@@ -35,12 +35,6 @@ class Config(BaseModel):
             self.exit[0] < 0 or self.exit[0] > self.width or
                 self.exit[1] < 0 or self.exit[1] > self.height):
             raise ValueError("coords are out of bound")
-        if (self.entry[0] not in [0, self.width] and
-                self.entry[1] not in [0, self.height]):
-            raise ValueError("entry is not on the maze border")
-        if (self.exit[0] not in [0, self.width] and
-                self.exit[1] not in [0, self.height]):
-            raise ValueError("exit is not on the maze border")
         return (self)
 
 
