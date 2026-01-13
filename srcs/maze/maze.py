@@ -70,8 +70,7 @@ class MazeDisplay:
                 if (not line):
                     break
                 for c in line:
-                    self.put_cell(c, x * self.cell_size,
-                                  y * self.cell_size, self.cell_size)
+                    self.put_cell(c, x * self.cell_size, y * self.cell_size)
                     x += 1
                 x = 0
                 y += 1
@@ -86,12 +85,10 @@ class MazeDisplay:
                     if (count == 0):
                         self.entry = (coords[0], coords[1])
                         self.fill_cell(coords[0] * self.cell_size, coords[1]
-                                       * self.cell_size, self.cell_size,
-                                       0x00FF00FF)
+                                       * self.cell_size, 0x00FF00FF)
                     else:
                         self.fill_cell(coords[0] * self.cell_size, coords[1]
-                                       * self.cell_size, self.cell_size,
-                                       0xFF0000FF)
+                                       * self.cell_size, 0xFF0000FF)
                     count += 1
                     continue
                 self.path = line
@@ -109,22 +106,20 @@ class MazeDisplay:
             elif (self.path[j] == "E"):
                 x += 1
             if (j != len(self.path) - 1):
-                self.fill_cell(x * self.cell_size, y * self.cell_size,
-                               self.cell_size, color)
+                self.fill_cell(x * self.cell_size, y * self.cell_size, color)
 
-    def put_cell(self, c: str, cell_x: int, cell_y: int,
-                 cell_size: int) -> None:
+    def put_cell(self, c: str, cell_x: int, cell_y: int) -> None:
         c = int(c, 16)
         if (c & 1):
-            self.put_line(cell_x, cell_y, cell_size)
+            self.put_line(cell_x, cell_y, self.cell_size)
         if ((c >> 1) & 1):
-            self.put_col(cell_x + cell_size, cell_y, cell_size)
+            self.put_col(cell_x + self.cell_size, cell_y, self.cell_size)
         if ((c >> 2) & 1):
-            self.put_line(cell_x, cell_y + cell_size, cell_size)
+            self.put_line(cell_x, cell_y + self.cell_size, self.cell_size)
         if ((c >> 3) & 1):
-            self.put_col(cell_x, cell_y, cell_size)
+            self.put_col(cell_x, cell_y, self.cell_size)
         if (c == 0xF):
-            self.fill_cell(cell_x, cell_y, cell_size)
+            self.fill_cell(cell_x, cell_y)
 
     def put_line(self, x: int, y: int, size: int, color: int = 0xFFFFFFFF):
         for i in range(size):
@@ -134,10 +129,11 @@ class MazeDisplay:
         for i in range(size):
             self.put_pixel(x, y + i, color)
 
-    def fill_cell(self, cell_x: int, cell_y: int, cell_size: int,
+    def fill_cell(self, cell_x: int, cell_y: int,
                   color: int = 0xFFFFFFFF) -> None:
-        for i in range(cell_size - 3):
-            self.put_line(cell_x + 2, cell_y + i + 2, cell_size - 3, color)
+        for i in range(self.cell_size - 3):
+            self.put_line(cell_x + 2, cell_y + i + 2,
+                          self.cell_size - 3, color)
 
     def get_maze_info(self) -> tuple[int, int]:
         with open(self.file_path, "r") as file:
