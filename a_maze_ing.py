@@ -9,6 +9,6 @@ if (__name__ == "__main__"):
     #     print(e)
     # config = parser.extract()
     # print(config)
-    m = MazeDisplay("test.txt")
+    m = MazeDisplay("maze.txt")
     m.init()
 # m.draw()

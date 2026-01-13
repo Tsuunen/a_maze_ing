@@ -20,6 +20,12 @@ class MazeDisplay:
         self.img = self.m.mlx_new_image(self.mlx, self.width, self.height)
         self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
         self.bpp = bpp // 8
+        self.path = ""
+        self.entry = ()
+        self.cell_size = 0
+        self.cols = 0
+        self.rows = 0
+        self.show_path = True
 
     def init(self):
         self.m.mlx_key_hook(self.win, self.key_pressed, None)
@@ -30,33 +36,42 @@ class MazeDisplay:
                               + "q: quit")
         self.m.mlx_hook(self.win, 33, 0,
                         lambda d: self.m.mlx_loop_exit(self.mlx), None)
+        self.cell_size, self.cols, self.rows = self.get_maze_info()
         self.draw()
-        cell_size, cols, rows = self.get_maze_info()
         self.m.mlx_put_image_to_window(self.mlx, self.win, self.img,
-                                       (self.width - cols * cell_size) // 2,
-                                       50 +
-                                       (self.height - rows * cell_size) // 2)
+                                       (self.width - self.cols *
+                                        self.cell_size) // 2,
+                                       50 + (self.height - self.rows *
+                                             self.cell_size) // 2)
         self.m.mlx_loop(self.mlx)
 
     def key_pressed(self, keycode: int, _):
         if (keycode == 113):  # 'q'
             self.m.mlx_loop_exit(self.mlx)
         elif (keycode == 112):  # 'p'
-            print("Toggle path")
+            if (self.show_path):
+                self.fill_path(0x000000FF)
+            else:
+                self.fill_path()
+            self.show_path = not self.show_path
+            self.m.mlx_put_image_to_window(self.mlx, self.win, self.img,
+                                           (self.width - self.cols *
+                                            self.cell_size) // 2,
+                                           50 + (self.height - self.rows *
+                                                 self.cell_size) // 2)
         elif (keycode == 114):  # 'r'
             print("Regenerate maze")
 
     def draw(self):
         with open(self.file_path, "r") as file:
             x, y = 0, 0
-            cell_size, _, _ = self.get_maze_info()
             for line in file:
                 line = line.rstrip("\n")
                 if (not line):
                     break
                 for c in line:
-                    self.put_cell(c, x * cell_size,
-                                  y * cell_size, cell_size)
+                    self.put_cell(c, x * self.cell_size,
+                                  y * self.cell_size, self.cell_size)
                     x += 1
                 x = 0
                 y += 1
@@ -69,26 +84,33 @@ class MazeDisplay:
                         continue
                     coords = [int(c) for c in coords]
                     if (count == 0):
-                        x, y = coords[0], coords[1]
-                        self.fill_cell(coords[0] * cell_size, coords[1]
-                                       * cell_size, cell_size, 0x00FF00FF)
+                        self.entry = (coords[0], coords[1])
+                        self.fill_cell(coords[0] * self.cell_size, coords[1]
+                                       * self.cell_size, self.cell_size,
+                                       0x00FF00FF)
                     else:
-                        self.fill_cell(coords[0] * cell_size, coords[1]
-                                       * cell_size, cell_size, 0xFF0000FF)
+                        self.fill_cell(coords[0] * self.cell_size, coords[1]
+                                       * self.cell_size, self.cell_size,
+                                       0xFF0000FF)
                     count += 1
                     continue
-                for j in range(len(line)):
-                    if (line[j] == "S"):
-                        y += 1
-                    elif (line[j] == "N"):
-                        y -= 1
-                    elif (line[j] == "W"):
-                        x -= 1
-                    elif (line[j] == "E"):
-                        x += 1
-                    if (j != len(line) - 1):
-                        self.fill_cell(x * cell_size, y * cell_size,
-                                       cell_size, 0xFFFFFF80)
+                self.path = line
+                self.fill_path()
+
+    def fill_path(self, color: int = 0xFFFFFF80):
+        x, y = self.entry[0], self.entry[1]
+        for j in range(len(self.path)):
+            if (self.path[j] == "S"):
+                y += 1
+            elif (self.path[j] == "N"):
+                y -= 1
+            elif (self.path[j] == "W"):
+                x -= 1
+            elif (self.path[j] == "E"):
+                x += 1
+            if (j != len(self.path) - 1):
+                self.fill_cell(x * self.cell_size, y * self.cell_size,
+                               self.cell_size, color)
 
     def put_cell(self, c: str, cell_x: int, cell_y: int,
                  cell_size: int) -> None:
