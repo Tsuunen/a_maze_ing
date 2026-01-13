@@ -1,5 +1,5 @@
 # from srcs.config.parser import ConfigParser
-from srcs.maze.maze import Maze
+from srcs.maze.maze import MazeDisplay
 
 
 if (__name__ == "__main__"):
@@ -9,6 +9,6 @@ if (__name__ == "__main__"):
     #     print(e)
     # config = parser.extract()
     # print(config)
-    m = Maze("maze.txt")
+    m = MazeDisplay("test.txt")
     m.init()
 # m.draw()

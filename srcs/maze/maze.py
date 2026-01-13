@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 
 
-class Maze:
+class MazeDisplay:
     def __init__(self, file_path: str):
         if Path(file_path).is_file() and os.access(file_path, os.R_OK):
             self.file_path = file_path
@@ -19,19 +19,21 @@ class Maze:
         self.img = self.m.mlx_new_image(self.mlx, self.width, self.height)
         self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
         self.bpp = bpp // 8
-        self.wall_color = 0xFFFFFFFF
 
     def init(self):
         self.m.mlx_hook(self.win, 33, 0,
                         lambda d: self.m.mlx_loop_exit(self.mlx), None)
         self.draw()
-        self.m.mlx_put_image_to_window(self.mlx, self.win, self.img, 0, 0)
+        cell_size, cols, rows = self.get_maze_info()
+        self.m.mlx_put_image_to_window(self.mlx, self.win, self.img,
+                                       (self.width - cols * cell_size) // 2,
+                                       (self.height - rows * cell_size) // 2)
         self.m.mlx_loop(self.mlx)
 
     def draw(self):
         with open(self.file_path, "r") as file:
             x, y = 0, 0
-            cell_size = self.get_maze_info()
+            cell_size, _, _ = self.get_maze_info()
             for line in file:
                 line = line.rstrip("\n")
                 if (not line):
@@ -90,9 +92,9 @@ class Maze:
         for i in range(size):
             self.put_pixel(x + i, y, color)
 
-    def put_col(self, x: int, y: int, size: int):
+    def put_col(self, x: int, y: int, size: int, color: int = 0xFFFFFFFF):
         for i in range(size):
-            self.put_pixel(x, y + i, self.wall_color)
+            self.put_pixel(x, y + i, color)
 
     def fill_cell(self, cell_x: int, cell_y: int, cell_size: int,
                   color: int = 0xFFFFFFFF) -> None:
@@ -110,9 +112,9 @@ class Maze:
                 rows += 1
                 if (cols == 0):
                     cols = len(line)
-        return (min(self.width // cols, self.height // rows) - 1)
+        return ((min(self.width // cols, self.height // rows) - 1, cols, rows))
 
-    def put_pixel(self, x: int, y: int, color: int) -> None:
+    def put_pixel(self, x: int, y: int, color: int = 0xFFFFFFFF) -> None:
         if x < 0 or y < 0 or x >= self.width or y >= self.height:
             return
         offset = y * self.line_len + x * self.bpp
