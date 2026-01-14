@@ -3,6 +3,25 @@ from pathlib import Path
 import os
 
 
+class Button:
+    def __init__(self, x, y, action, label):
+        self.x = x
+        self.y = y
+        self.w = 10 * len(label)
+        self.h = 20
+        self.action = action
+        self.label = label
+
+    def contains(self, mx, my):
+        return (
+            self.x <= mx < self.x + self.w and
+            self.y <= my < self.y + self.h
+        )
+
+# Afficher le path en animé
+# Faire les "boutons"
+
+
 class MazeDisplay:
     def __init__(self, file_path: str):
         if Path(file_path).is_file() and os.access(file_path, os.R_OK):
@@ -26,41 +45,70 @@ class MazeDisplay:
         self.cols = 0
         self.rows = 0
         self.show_path = True
+        self.buttons = []
+        tmp = 0
+        raw_buts = [
+            {
+                "label": "r: Regenerate a new maze",
+                "action": lambda: print("Regenerate a new maze...")
+            },
+            {
+                "label": "p: Toggle path on and off",
+                "action": self.toggle_path
+            },
+            {
+                "label": "q: quit",
+                "action": lambda: self.m.mlx_loop_exit(self.mlx)
+            }
+        ]
+        for button in raw_buts:
+            but = Button(15 + tmp, 790, button["action"], button["label"])
+            tmp += but.w + 40
+            self.buttons.append(but)
 
     def init(self):
         self.m.mlx_key_hook(self.win, self.key_pressed, None)
+        self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
         self.m.mlx_string_put(self.mlx, self.win, 15, 10,
                               0xFFFFFFFF, "A Maze Ing")
-        self.m.mlx_string_put(self.mlx, self.win, 15, 790, 0xFFFFFFFF,
-                              "r: Regenerate a new maze    p: Toggle path    "
-                              + "q: quit")
+        for i in self.buttons:
+            self.m.mlx_string_put(self.mlx, self.win, i.x,
+                                  i.y, 0xFFFFFFFF, i.label)
         self.m.mlx_hook(self.win, 33, 0,
-                        lambda d: self.m.mlx_loop_exit(self.mlx), None)
+                        lambda _: self.m.mlx_loop_exit(self.mlx), None)
         self.cell_size, self.cols, self.rows = self.get_maze_info()
         self.draw()
+        self.refresh()
+        self.m.mlx_loop(self.mlx)
+
+    def refresh(self):
         self.m.mlx_put_image_to_window(self.mlx, self.win, self.img,
                                        (self.width - self.cols *
                                         self.cell_size) // 2,
                                        50 + (self.height - self.rows *
                                              self.cell_size) // 2)
-        self.m.mlx_loop(self.mlx)
+
+    def on_mouse(self, button, x, y, _):
+        for i in self.buttons:
+            if (i.contains(x, y)):
+                i.action()
+                return
 
     def key_pressed(self, keycode: int, _):
         if (keycode == 113):  # 'q'
             self.m.mlx_loop_exit(self.mlx)
         elif (keycode == 112):  # 'p'
-            if (self.show_path):
-                self.fill_path(0x000000FF)
-            else:
-                self.fill_path()
-            self.show_path = not self.show_path
-            self.m.mlx_put_image_to_window(self.mlx, self.win, self.img,
-                                           (self.width - self.cols *
-                                            self.cell_size) // 2,
-                                           50 + (self.height - self.rows *
-                                                 self.cell_size) // 2)
+            self.toggle_path()
         elif (keycode == 114):  # 'r'
             print("Regenerate maze")
+
+    def toggle_path(self):
+        if (self.show_path):
+            self.fill_path(0x000000FF)
+        else:
+            self.fill_path()
+        self.show_path = not self.show_path
+        self.refresh()
 
     def draw(self):
         with open(self.file_path, "r") as file:
@@ -115,7 +163,7 @@ class MazeDisplay:
         if ((c >> 1) & 1):
             self.put_col(cell_x + self.cell_size, cell_y, self.cell_size)
         if ((c >> 2) & 1):
-            self.put_line(cell_x, cell_y + self.cell_size, self.cell_size)
+            self.put_line(cell_x, cell_y + self.cell_size, self.cell_size + 1)
         if ((c >> 3) & 1):
             self.put_col(cell_x, cell_y, self.cell_size)
         if (c == 0xF):

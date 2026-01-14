@@ -1,10 +1,18 @@
 import random
+from enum import Enum
 """
 0 north (up    / -y)(1)
 1 east  (right / +x)(2)
 2 south (down  / +y)(4)
 3 west  (left  / -x)(8)
 """
+
+
+class Direction(Enum):
+    N = 1
+    E = 2
+    S = 4
+    W = 8
 
 
 class Maze:
