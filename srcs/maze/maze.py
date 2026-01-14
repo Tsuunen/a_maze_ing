@@ -1,6 +1,7 @@
 from mlx import Mlx
-from pathlib import Path
-import os
+from .parser import Maze
+
+# Afficher le path en animé
 
 
 class Button:
@@ -18,17 +19,9 @@ class Button:
             self.y <= my < self.y + self.h
         )
 
-# Afficher le path en animé
-# Faire les "boutons"
-
 
 class MazeDisplay:
-    def __init__(self, file_path: str):
-        if Path(file_path).is_file() and os.access(file_path, os.R_OK):
-            self.file_path = file_path
-        else:
-            raise FileNotFoundError(
-                f"{file_path} does not exist or is not readable")
+    def __init__(self, maze: Maze):
         self.width = 1080
         self.height = 720
         self.win_height = 820
@@ -39,11 +32,14 @@ class MazeDisplay:
         self.img = self.m.mlx_new_image(self.mlx, self.width, self.height)
         self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
         self.bpp = bpp // 8
-        self.path = ""
-        self.entry = ()
-        self.cell_size = 0
-        self.cols = 0
-        self.rows = 0
+        self.maze = maze.maze
+        self.path = maze.path
+        self.entry = maze.entry
+        self.exit = maze.exit
+        self.cols = maze.nbr_cols
+        self.rows = maze.nbr_rows
+        self.cell_size = min(self.width // self.cols,
+                             self.height // self.rows) - 1
         self.show_path = True
         self.buttons = []
         tmp = 0
@@ -76,7 +72,6 @@ class MazeDisplay:
                                   i.y, 0xFFFFFFFF, i.label)
         self.m.mlx_hook(self.win, 33, 0,
                         lambda _: self.m.mlx_loop_exit(self.mlx), None)
-        self.cell_size, self.cols, self.rows = self.get_maze_info()
         self.draw()
         self.refresh()
         self.m.mlx_loop(self.mlx)
@@ -111,36 +106,20 @@ class MazeDisplay:
         self.refresh()
 
     def draw(self):
-        with open(self.file_path, "r") as file:
-            x, y = 0, 0
-            for line in file:
-                line = line.rstrip("\n")
-                if (not line):
-                    break
-                for c in line:
-                    self.put_cell(c, x * self.cell_size, y * self.cell_size)
-                    x += 1
-                x = 0
-                y += 1
-            count = 0
-            for line in file:
-                line = line.rstrip("\n")
-                if (count < 2):
-                    coords = line.split(",")
-                    if (len(coords) != 2):
-                        continue
-                    coords = [int(c) for c in coords]
-                    if (count == 0):
-                        self.entry = (coords[0], coords[1])
-                        self.fill_cell(coords[0] * self.cell_size, coords[1]
-                                       * self.cell_size, 0x00FF00FF)
-                    else:
-                        self.fill_cell(coords[0] * self.cell_size, coords[1]
-                                       * self.cell_size, 0xFF0000FF)
-                    count += 1
-                    continue
-                self.path = line
-                self.fill_path()
+        x, y = 0, 0
+        for line in self.maze.split("\n"):
+            for c in line:
+                if (c != ' '):
+                    self.put_cell(c, x * self.cell_size,
+                                  y * self.cell_size)
+                x += 1
+            x = 0
+            y += 1
+            self.fill_cell(self.entry[0] * self.cell_size, self.entry[1]
+                           * self.cell_size, 0x00FF00FF)
+            self.fill_cell(self.exit[0] * self.cell_size, self.exit[1]
+                           * self.cell_size, 0xFF0000FF)
+            self.fill_path()
 
     def fill_path(self, color: int = 0xFFFFFF80):
         x, y = self.entry[0], self.entry[1]
@@ -197,19 +176,6 @@ class MazeDisplay:
         for i in range(self.cell_size - 3):
             self.put_line(cell_x + 2, cell_y + i + 2,
                           self.cell_size - 3, color)
-
-    def get_maze_info(self) -> tuple[int, int]:
-        with open(self.file_path, "r") as file:
-            cols = 0
-            rows = 0
-            for line in file:
-                line = line.rstrip("\n")
-                if (not line):
-                    break
-                rows += 1
-                if (cols == 0):
-                    cols = len(line)
-        return ((min(self.width // cols, self.height // rows) - 1, cols, rows))
 
     def put_pixel(self, x: int, y: int, color: int = 0xFFFFFFFF) -> None:
         if x < 0 or y < 0 or x >= self.width or y >= self.height:

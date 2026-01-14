@@ -16,5 +16,5 @@ if (__name__ == "__main__"):
         print(e)
     config = parser.extract()
     print(config)
-    # m = MazeDisplay("maze.txt")
-    # m.init()
+    m = MazeDisplay(config)
+    m.init()
