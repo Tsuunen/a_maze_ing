@@ -1,8 +1,7 @@
-from pathlib import Path
-import os
-from typing import Tuple, Iterator
+from typing import Tuple
 from pydantic import (BaseModel, Field, field_validator, FieldValidationInfo,
                       ValidationError, model_validator)
+from ..parser import Parser
 
 
 class Config(BaseModel):
@@ -38,30 +37,11 @@ class Config(BaseModel):
         return (self)
 
 
-class ConfigParser:
-    def __init__(self, file_path: str):
-        if Path(file_path).is_file() and os.access(file_path, os.R_OK):
-            self.file_path = file_path
-        else:
-            raise FileNotFoundError(
-                f"{file_path} does not exist or is not readable")
-
-    def iter_lines(self) -> Iterator[str]:
-        with open(self.file_path, "r") as file:
-            for line in file:
-                yield line.rstrip("\n").strip()
-
-    def format_validation_error(self, e: ValidationError) -> str:
-        lines = []
-        for err in e.errors():
-            field = ".".join(str(p) for p in err["loc"])
-            msg = err["msg"]
-            lines.append(f"- {field}: {msg}")
-        return "Invalid configuration:\n" + "\n".join(lines)
-
+class ConfigParser(Parser):
     def extract(self) -> Config:
         config = {}
         for line in self.iter_lines():
+            line = line.strip()
             if (not len(line) or line[0] == "#"):
                 continue
             opt = line.split("=")
