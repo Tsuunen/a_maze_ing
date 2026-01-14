@@ -146,12 +146,27 @@ class MazeDisplay:
         x, y = self.entry[0], self.entry[1]
         for j in range(len(self.path)):
             if (self.path[j] == "S"):
+                for i in range(3):
+                    self.put_line(x * self.cell_size + 2, y *
+                                  self.cell_size + self.cell_size - 1 + i,
+                                  self.cell_size - 3, color)
                 y += 1
             elif (self.path[j] == "N"):
+                for i in range(3):
+                    self.put_line(x * self.cell_size + 2, y *
+                                  self.cell_size - 1 + i,
+                                  self.cell_size - 3, color)
                 y -= 1
             elif (self.path[j] == "W"):
+                for i in range(3):
+                    self.put_col(x * self.cell_size - 1 + i, y *
+                                 self.cell_size + 2, self.cell_size - 3, color)
                 x -= 1
             elif (self.path[j] == "E"):
+                for i in range(3):
+                    self.put_col(x * self.cell_size + self.cell_size - 1 + i,
+                                 y * self.cell_size + 2, self.cell_size - 3,
+                                 color)
                 x += 1
             if (j != len(self.path) - 1):
                 self.fill_cell(x * self.cell_size, y * self.cell_size, color)
