@@ -1,4 +1,5 @@
-# from srcs.config.parser import ConfigParser
+from srcs.config.parser import ConfigParser
+from srcs.maze.parser import MazeParser
 from srcs.maze.maze import MazeDisplay
 
 
@@ -9,6 +10,11 @@ if (__name__ == "__main__"):
     #     print(e)
     # config = parser.extract()
     # print(config)
-    m = MazeDisplay("nath.txt")
+    try:
+        parser = MazeParser("maze2.txt")
+    except Exception as e:
+        print(e)
+    config = parser.extract()
+    print(config)
+    m = MazeDisplay(config)
     m.init()
-# m.draw()
