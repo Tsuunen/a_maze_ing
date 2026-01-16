@@ -16,6 +16,8 @@ class Maze(BaseModel):
     @classmethod
     def parse_2tuple(cls, raw: str,
                      info: FieldValidationInfo) -> Tuple[int, int]:
+        if (isinstance(raw, tuple)):
+            return (raw)
         opt = raw.split(",")
         opt = [o.strip() for o in opt]
         if (len(opt) != 2):
@@ -29,10 +31,10 @@ class Maze(BaseModel):
     def check_valid_coords(self):
         if (self.entry == self.exit):
             raise ValueError("entry and exit must not overlap")
-        if (self.entry[0] < 0 or self.entry[0] > self.nbr_cols or
-            self.entry[1] < 0 or self.entry[1] > self.nbr_rows or
-            self.exit[0] < 0 or self.exit[0] > self.nbr_cols or
-                self.exit[1] < 0 or self.exit[1] > self.nbr_rows):
+        if (self.entry[0] < 0 or self.entry[0] >= self.nbr_cols or
+            self.entry[1] < 0 or self.entry[1] >= self.nbr_rows or
+            self.exit[0] < 0 or self.exit[0] >= self.nbr_cols or
+                self.exit[1] < 0 or self.exit[1] >= self.nbr_rows):
             raise ValueError("coords are out of bound")
         for c in self.maze:
             if (c not in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -41,7 +43,7 @@ class Maze(BaseModel):
         for c in self.path:
             if (c not in ["N", "S", "E", "W"]):
                 raise ValueError(f"{c} is an invalid path character")
-        self.maze = self.maze[:-1]
+        self.maze = self.maze.rstrip("\n")
         for line in self.maze.split("\n"):
             if (len(line) != self.nbr_cols):
                 raise ValueError("Maze line are not the same size")

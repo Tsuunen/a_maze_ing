@@ -29,10 +29,10 @@ class Config(BaseModel):
     def check_valid_coords(self):
         if (self.entry == self.exit):
             raise ValueError("entry and exit must not overlap")
-        if (self.entry[0] < 0 or self.entry[0] > self.width or
-            self.entry[1] < 0 or self.entry[1] > self.height or
-            self.exit[0] < 0 or self.exit[0] > self.width or
-                self.exit[1] < 0 or self.exit[1] > self.height):
+        if (self.entry[0] < 0 or self.entry[0] >= self.width or
+            self.entry[1] < 0 or self.entry[1] >= self.height or
+            self.exit[0] < 0 or self.exit[0] >= self.width or
+                self.exit[1] < 0 or self.exit[1] >= self.height):
             raise ValueError("coords are out of bound")
         return (self)
 

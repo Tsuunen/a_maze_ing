@@ -1,10 +1,10 @@
-WIDTH=20
-HEIGHT=15
+WIDTH=150
+HEIGHT=150
 	#Ceci est un commentaire
 
 
-		ENTRY=0, 15
-EXIT=10, 15
+		ENTRY=0, 0
+EXIT=149, 149
 
 OUTPUT_FILE=maze.txt
 PERFECT=True

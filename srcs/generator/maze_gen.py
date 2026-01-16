@@ -1,14 +1,17 @@
 import random
 import sys
+from ..config.parser import Config
+from ..maze.parser import Maze
 
 
 class MazeGen:
-    def __init__(self, width: int, height: int, entry: tuple[int:int],
-                 exit: tuple[int, int]):
-        self.width = width
-        self.height = height
-        self.entry = entry
-        self.exit = exit
+    def __init__(self, conf: Config):
+        self.width = conf.width
+        self.height = conf.height
+        self.entry = conf.entry
+        self.exit = conf.exit
+        self.output_file = conf.output_file
+        self.is_perfect = conf.perfect
         self.lst_repr = [[15 for i in range(self.width)]
                          for j in range(self.height)]
 
@@ -72,19 +75,30 @@ class MazeGen:
             repr += ""
         return repr
 
-    def export_maze(self):
+    def export_maze_file(self):
         """
         export the list representation of the maze in a .txt file
         """
-        with open("output.txt", "w") as f:
+        with open(self.output_file, "w") as f:
             f.write(self.__repr__())
+
+    def export_maze_obj(self) -> None:
+        repr = self.__repr__()
+        return Maze(
+            maze=repr[:(self.width + 1) * self.height],
+            entry=self.entry,
+            exit=self.exit,
+            path=repr.splitlines()[self.height + 3],
+            nbr_cols=self.width,
+            nbr_rows=self.height
+        )
 
     def solve(self) -> str:
         """
         solve the maze
         return a string representing mooves necessary to solve it
         """
-        from solver import AStar
+        from .solver import AStar
         solver: AStar = AStar(self)
         return solver.solve(self)
 

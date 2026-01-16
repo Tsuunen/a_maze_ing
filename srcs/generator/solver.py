@@ -1,4 +1,4 @@
-from maze_gen import MazeGen
+from .maze_gen import MazeGen
 
 
 class AStar:
