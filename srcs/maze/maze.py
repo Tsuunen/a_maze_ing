@@ -127,6 +127,10 @@ class MazeDisplay:
             self.toggle_path()
         elif (keycode == 114):  # 'r'
             self.regen_maze()
+        elif (keycode == 119):
+            self.change_wall_color()
+        elif (keycode == 108):
+            self.change_logo_color()
 
     def change_wall_color(self):
         self.wall_color = choice(self.colors)
