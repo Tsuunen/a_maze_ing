@@ -65,8 +65,11 @@ class MazeGen:
             repr += "\n"
         repr += f"\n{self.entry[0]},{self.entry[1]}\n\
 {self.exit[0]},{self.exit[1]}\n"
-        print(self.solve())
-        repr += self.solve()
+        try:
+            repr += self.solve()
+        except (TypeError):
+            print("Maze with no solution cannot be represented")
+            repr += ""
         return repr
 
     def export_maze(self):
@@ -125,42 +128,35 @@ class MazeGen:
             output.append(2)
         return output
 
-    def dfs_core(self, pos: list[int, int]) -> None:
-        """
-        core of the backtracking function for the maze generation
-        takes in a pos and creates random corridors
-        should never be called alone
-        """
-        direction: int
-        neighbors: list[int] = self.neighbors(pos)
-        self.visited[pos[1]][pos[0]] = 1
-        while len(neighbors) != 0:
-            random.shuffle(neighbors)
-            direction = neighbors.pop()
-            self.dig_wall(pos, direction)
-            if direction == 0:
-                self.dfs_core([pos[0], pos[1] - 1])
-            if direction == 1:
-                self.dfs_core([pos[0] + 1, pos[1]])
-            if direction == 2:
-                self.dfs_core([pos[0], pos[1] + 1])
-            if direction == 3:
-                self.dfs_core([pos[0] - 1, pos[1]])
-            neighbors = self.neighbors(pos)
-
     def dfs(self, seed: int = None) -> None:
         """
-        Initialize depth first search genaration algorithm
+        uses randomized depth first search algorithm to genarate th maze
         """
         random.seed(seed)
         self.visited = [[0 for i in range(self.width)]
                         for j in range(self.height)]
         self.ft_stamp_dfs()
-        self.dfs_core(self.entry)
+        pos: list[tuple[int, int]] = [self.entry]
+        while pos:
+            self.visited[pos[-1][1]][pos[-1][0]] = 1
+            neighbors: list[int] = self.neighbors(pos[-1])
+            if not neighbors:
+                pos.pop()
+                continue
+            random.shuffle(neighbors)
+            self.dig_wall(pos[-1], neighbors[0])
+            if neighbors[0] == 0:
+                pos.append((pos[-1][0], pos[-1][1] - 1))
+            if neighbors[0] == 1:
+                pos.append((pos[-1][0] + 1, pos[-1][1]))
+            if neighbors[0] == 2:
+                pos.append((pos[-1][0], pos[-1][1] + 1))
+            if neighbors[0] == 3:
+                pos.append((pos[-1][0] - 1, pos[-1][1]))
 
 
 if __name__ == "__main__":
-    maze = MazeGen(9, 7, (0, 0), (1, 1))
+    maze = MazeGen(69, 90, (0, 0), (50, 50))
     maze.dfs()
     sys.setrecursionlimit(100000000)
     maze.export_maze()
