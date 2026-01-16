@@ -1,8 +1,8 @@
-from maze_gen import Maze
+from maze_gen import MazeGen
 
 
 class AStar:
-    def __init__(self, maze: Maze):
+    def __init__(self, maze: MazeGen):
         self.open = [maze.entry]
         self.closed = set()
         self.came_from = dict()
@@ -17,22 +17,18 @@ class AStar:
         return abs(src[0] - dest[0]) + abs(src[1] - dest[1])
 
     @staticmethod
-    def unpack_neighbors(pos: tuple[int, int], neighbors: list[int]) \
-            -> list[tuple[int, int]]:
-        """
-        converts neighbors from maze notation(direction)
-        to solver notation(coordinates)
-        """
-        neighbors_coords = []
-        for i in neighbors:
-            if i == 0:
-                neighbors_coords.append((pos[0], pos[1] - 1))
-            elif i == 1:
-                neighbors_coords.append((pos[0] + 1, pos[1]))
-            elif i == 2:
-                neighbors_coords.append((pos[0], pos[1] + 1))
-            elif i == 3:
-                neighbors_coords.append((pos[0] - 1, pos[1]))
+    def neighbors(maze: MazeGen, pos: tuple[int, int]):
+        neighbors_coords: list[tuple[int, int]] = []
+        walls: int = maze.lst_repr[pos[1]][pos[0]]
+
+        if not walls & 1:
+            neighbors_coords.append((pos[0], pos[1] - 1))
+        if not walls & 2:
+            neighbors_coords.append((pos[0] + 1, pos[1]))
+        if not walls & 4:
+            neighbors_coords.append((pos[0], pos[1] + 1))
+        if not walls & 8:
+            neighbors_coords.append((pos[0] - 1, pos[1]))
         return neighbors_coords
 
     def best_node(self) -> tuple[int, int]:
@@ -67,7 +63,7 @@ class AStar:
             return True
         return False
 
-    def solve_paths(self, maze: Maze) -> bool:
+    def solve_paths(self, maze: MazeGen) -> bool:
         """
         finds a path from entry to exit
         puts every explored path in self.came_from
@@ -78,7 +74,7 @@ class AStar:
             self.close_node(current)
             if current == maze.exit:
                 return True
-            neighbors = self.unpack_neighbors(current, maze.neighbors(current))
+            neighbors = self.neighbors(maze, current)
             for node in neighbors:
                 if node in self.closed:
                     continue
@@ -91,7 +87,7 @@ class AStar:
                     self.came_from[node] = current
         return False
 
-    def find_path(self, maze: Maze) -> str:
+    def find_path(self, maze: MazeGen) -> str:
         """
         parse the came_from dict to find the best path from entry to exit
         """
@@ -103,13 +99,13 @@ class AStar:
             elif self.came_from[current][0] < current[0]:
                 output += "E"
             elif self.came_from[current][1] > current[1]:
-                output += "S"
-            elif self.came_from[current][1] < current[1]:
                 output += "N"
+            elif self.came_from[current][1] < current[1]:
+                output += "S"
             current = self.came_from[current]
         return output[::-1]
 
-    def solve(self, maze: Maze) -> str | None:
+    def solve(self, maze: MazeGen) -> str | None:
         """
         solves a given maze using the A* algorithm
         output the solution from entry in a string formated with maze notation
@@ -119,7 +115,3 @@ class AStar:
             return self.find_path(maze)
         else:
             return None
-
-
-if __name__ == "__main__":
-    print(AStar.unpack_neighbors([5, 5], [0, 2]))

@@ -155,7 +155,7 @@ class MazeDisplay:
         if (c & 1):
             self.put_line(cell_x, cell_y, self.cell_size)
         if ((c >> 1) & 1):
-            self.put_col(cell_x + self.cell_size, cell_y, self.cell_size)
+            self.put_col(cell_x + self.cell_size, cell_y, self.cell_size + 1)
         if ((c >> 2) & 1):
             self.put_line(cell_x, cell_y + self.cell_size, self.cell_size + 1)
         if ((c >> 3) & 1):

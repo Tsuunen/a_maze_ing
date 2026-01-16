@@ -1,21 +1,49 @@
 import random
 import sys
-"""
-0 north (up    / -y)(1)
-1 east  (right / +x)(2)
-2 south (down  / +y)(4)
-3 west  (left  / -x)(8)
-"""
 
 
-class Maze:
-    def __init__(self, width: int, height: int,
-                 entry: tuple[int, int], exit: tuple[int, int]):
+class MazeGen:
+    def __init__(self, width: int, height: int, entry: tuple[int:int],
+                 exit: tuple[int, int]):
         self.width = width
         self.height = height
         self.entry = entry
         self.exit = exit
-        self.lst_repr = [[15 for i in range(width)] for j in range(height)]
+        self.lst_repr = [[15 for i in range(self.width)]
+                         for j in range(self.height)]
+
+    def ft_stamp_dfs(self) -> None:
+        """
+        put the '42 stamp' on the maze if possible
+        """
+        if self.width < 9 or self.height < 7:
+            return
+        center: tuple[int, int] = (self.width // 2, self.height // 2)
+        stamp: list[tuple[int, int]] = [
+            (center[0] - 3, center[1] - 2),
+            (center[0] - 3, center[1] - 1),
+            (center[0] - 3, center[1]),
+            (center[0] - 2, center[1]),
+            (center[0] - 1, center[1]),
+            (center[0] - 1, center[1] + 1),
+            (center[0] - 1, center[1] + 2),
+            (center[0] + 1, center[1] - 2),
+            (center[0] + 2, center[1] - 2),
+            (center[0] + 3, center[1] - 2),
+            (center[0] + 3, center[1] - 1),
+            (center[0] + 1, center[1]),
+            (center[0] + 2, center[1]),
+            (center[0] + 3, center[1]),
+            (center[0] + 1, center[1] + 1),
+            (center[0] + 1, center[1] + 2),
+            (center[0] + 2, center[1] + 2),
+            (center[0] + 3, center[1] + 2),
+        ]
+        for coord in stamp:
+            if coord == self.entry or coord == self.exit:
+                return
+        for coord in stamp:
+            self.visited[coord[1]][coord[0]] = 1
 
     @staticmethod
     def hexa(x: int) -> str | None:
@@ -35,6 +63,10 @@ class Maze:
             for j in i:
                 repr += self.hexa(j)
             repr += "\n"
+        repr += f"\n{self.entry[0]},{self.entry[1]}\n\
+{self.exit[0]},{self.exit[1]}\n"
+        print(self.solve())
+        repr += self.solve()
         return repr
 
     def export_maze(self):
@@ -43,6 +75,15 @@ class Maze:
         """
         with open("output.txt", "w") as f:
             f.write(self.__repr__())
+
+    def solve(self) -> str:
+        """
+        solve the maze
+        return a string representing mooves necessary to solve it
+        """
+        from solver import AStar
+        solver: AStar = AStar(self)
+        return solver.solve(self)
 
     def dig_wall(self, pos: list[int, int], direction: int) -> None:
         """
@@ -67,9 +108,12 @@ class Maze:
         takes a pos in the currently generating maze (pos[x, y])
         return the list of unexplored neighbors
         """
+        """
         if pos[0] < 0 or pos[0] >= self.width or \
            pos[1] < 0 or pos[1] >= self.height:
             return []
+        #print(pos)
+        """
         output = []
         if pos[0] - 1 >= 0 and self.visited[pos[1]][pos[0] - 1] == 0:
             output.append(3)
@@ -111,11 +155,12 @@ class Maze:
         random.seed(seed)
         self.visited = [[0 for i in range(self.width)]
                         for j in range(self.height)]
+        self.ft_stamp_dfs()
         self.dfs_core(self.entry)
 
 
 if __name__ == "__main__":
-    maze = Maze(50, 50, (0, 0), (50, 50))
-    maze.dfs(26)
+    maze = MazeGen(9, 7, (0, 0), (1, 1))
+    maze.dfs()
     sys.setrecursionlimit(100000000)
     maze.export_maze()
