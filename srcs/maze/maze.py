@@ -106,6 +106,7 @@ class MazeDisplay:
         self.refresh()
 
     def draw(self):
+        self.fill_path()
         x, y = 0, 0
         for line in self.maze.split("\n"):
             for c in line:
@@ -119,7 +120,6 @@ class MazeDisplay:
                            * self.cell_size, 0x00FF00FF)
             self.fill_cell(self.exit[0] * self.cell_size, self.exit[1]
                            * self.cell_size, 0xFF0000FF)
-            self.fill_path()
 
     def fill_path(self, color: int = 0xFFFFFF80):
         x, y = self.entry[0], self.entry[1]
