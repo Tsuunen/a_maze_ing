@@ -1,5 +1,8 @@
 from mlx import Mlx
 from .parser import Maze
+from ..generator.maze_gen import MazeGen
+from ..config.parser import Config
+from random import randint, choice
 
 # Afficher le path en animé
 
@@ -21,7 +24,8 @@ class Button:
 
 
 class MazeDisplay:
-    def __init__(self, maze: Maze):
+    def __init__(self, maze: Maze, config: Config):
+        self.config = config
         self.width = 1080
         self.height = 720
         self.win_height = 820
@@ -29,9 +33,6 @@ class MazeDisplay:
         self.mlx = self.m.mlx_init()
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
-        self.img = self.m.mlx_new_image(self.mlx, self.width, self.height)
-        self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
-        self.bpp = bpp // 8
         self.maze = maze.maze
         self.path = maze.path
         self.entry = maze.entry
@@ -40,17 +41,47 @@ class MazeDisplay:
         self.rows = maze.nbr_rows
         self.cell_size = min(self.width // self.cols,
                              self.height // self.rows) - 1
+        self.img_size = max(self.cols, self.rows) * self.cell_size + 1
+        self.img = self.m.mlx_new_image(self.mlx, self.img_size, self.img_size)
+        self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
+        self.bpp = bpp // 8
         self.show_path = True
         self.buttons = []
+        self.colors = [0x1ABC9CFF,
+                       0x2ECC71FF,
+                       0x3498DBFF,
+                       0x9B59B6FF,
+                       0x34495EFF,
+                       0x16A085FF,
+                       0x27AE60FF,
+                       0x2980B9FF,
+                       0x8E44ADFF,
+                       0x2C3E50FF,
+                       0xF1C40FFF,
+                       0xE67E22FF,
+                       0xE74C3CFF,
+                       0xECF0F1FF,
+                       0x95A5A6FF,
+                       0x7F8C8DFF,]
+        self.wall_color = 0xFFFFFFFF
+        self.logo_color = 0xFFFFFFFF
         tmp = 0
         raw_buts = [
             {
-                "label": "r: Regenerate a new maze",
-                "action": lambda: print("Regenerate a new maze...")
+                "label": "r: New maze",
+                "action": self.regen_maze
             },
             {
                 "label": "p: Toggle path on and off",
                 "action": self.toggle_path
+            },
+            {
+                "label": "w: change wall color",
+                "action": self.change_wall_color
+            },
+            {
+                "label": "l: Change 42 color",
+                "action": self.change_logo_color
             },
             {
                 "label": "q: quit",
@@ -65,13 +96,13 @@ class MazeDisplay:
     def init(self):
         self.m.mlx_key_hook(self.win, self.key_pressed, None)
         self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
+        self.m.mlx_hook(self.win, 33, 0,
+                        lambda _: self.m.mlx_loop_exit(self.mlx), None)
         self.m.mlx_string_put(self.mlx, self.win, 15, 10,
                               0xFFFFFFFF, "A Maze Ing")
         for i in self.buttons:
             self.m.mlx_string_put(self.mlx, self.win, i.x,
                                   i.y, 0xFFFFFFFF, i.label)
-        self.m.mlx_hook(self.win, 33, 0,
-                        lambda _: self.m.mlx_loop_exit(self.mlx), None)
         self.draw()
         self.refresh()
         self.m.mlx_loop(self.mlx)
@@ -95,7 +126,36 @@ class MazeDisplay:
         elif (keycode == 112):  # 'p'
             self.toggle_path()
         elif (keycode == 114):  # 'r'
-            print("Regenerate maze")
+            self.regen_maze()
+
+    def change_wall_color(self):
+        self.wall_color = choice(self.colors)
+        self.draw()
+        self.refresh()
+
+    def change_logo_color(self):
+        self.logo_color = choice(self.colors)
+        self.draw()
+        self.refresh()
+
+    def regen_maze(self):
+        gen = MazeGen(self.config)
+        gen.dfs()
+        maze = gen.export_maze_obj()
+        self.maze = maze.maze
+        self.path = maze.path
+        self.fill_img()
+        self.draw()
+        self.refresh()
+
+    def fill_img(self, color: int = 0x000000FF):
+        px = bytes((
+            (color >> 8) & 0xFF,
+            (color >> 16) & 0xFF,
+            (color >> 24) & 0xFF,
+            color & 0xFF,
+        ))
+        self.addr[:] = px * (self.img_size ** 2)
 
     def toggle_path(self):
         if (self.show_path):
@@ -121,7 +181,7 @@ class MazeDisplay:
             self.fill_cell(self.exit[0] * self.cell_size, self.exit[1]
                            * self.cell_size, 0xFF0000FF)
 
-    def fill_path(self, color: int = 0xFFFFFF80):
+    def fill_path(self, color: int = 0xC0C0C0FF):
         x, y = self.entry[0], self.entry[1]
         for j in range(len(self.path)):
             if (self.path[j] == "S"):
@@ -182,15 +242,17 @@ class MazeDisplay:
     def put_cell(self, c: str, cell_x: int, cell_y: int) -> None:
         c = int(c, 16)
         if (c & 1):
-            self.put_line(cell_x, cell_y, self.cell_size)
+            self.put_line(cell_x, cell_y, self.cell_size, self.wall_color)
         if ((c >> 1) & 1):
-            self.put_col(cell_x + self.cell_size, cell_y, self.cell_size + 1)
+            self.put_col(cell_x + self.cell_size, cell_y,
+                         self.cell_size + 1, self.wall_color)
         if ((c >> 2) & 1):
-            self.put_line(cell_x, cell_y + self.cell_size, self.cell_size + 1)
+            self.put_line(cell_x, cell_y + self.cell_size,
+                          self.cell_size + 1, self.wall_color)
         if ((c >> 3) & 1):
-            self.put_col(cell_x, cell_y, self.cell_size)
+            self.put_col(cell_x, cell_y, self.cell_size, self.wall_color)
         if (c == 0xF):
-            self.fill_cell(cell_x, cell_y)
+            self.fill_cell(cell_x, cell_y, self.logo_color)
 
     def put_line(self, x: int, y: int, size: int, color: int = 0xFFFFFFFF):
         for i in range(size):

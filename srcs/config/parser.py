@@ -16,6 +16,8 @@ class Config(BaseModel):
     @classmethod
     def parse_2tuple(cls, raw: str,
                      info: FieldValidationInfo) -> Tuple[int, int]:
+        if (isinstance(raw, tuple)):
+            return (raw)
         opt = raw.split(",")
         opt = [o.strip() for o in opt]
         if (len(opt) != 2):

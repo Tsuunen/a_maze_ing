@@ -14,11 +14,5 @@ if (__name__ == "__main__"):
     maze = MazeGen(config)
     maze.dfs()
     maze.export_maze_file()
-    print(maze.export_maze_obj())
-    try:
-        parser = MazeParser("maze.txt")
-    except Exception as e:
-        print(e)
-    config = parser.extract()
-    m = MazeDisplay(config)
+    m = MazeDisplay(maze.export_maze_obj(), config)
     m.init()
