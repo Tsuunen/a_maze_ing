@@ -30,11 +30,12 @@ class Button:
 class MazeDisplay:
     def __init__(self, maze: Maze, config: Config):
         self.config = config
+        self.ratio = 8/10
         self.m = Mlx()
         self.mlx = self.m.mlx_init()
         (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
-        self.width = ceil(w * 8/10)
-        self.win_height = ceil(h * 8/10)
+        self.width = ceil(w * self.ratio)
+        self.win_height = ceil(h * self.ratio)
         self.height = self.win_height - 100
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
@@ -73,7 +74,7 @@ class MazeDisplay:
                        0x7F8C8DFF,]
         self.wall_color = 0xFFFFFFFF
         self.logo_color = 0xFFFFFFFF
-        raw_buts = [
+        self.raw_buts = [
             {
                 "label": "r: New maze",
                 "action": self.regen_maze
@@ -96,7 +97,7 @@ class MazeDisplay:
             }
         ]
         tmp = 0
-        for button in raw_buts:
+        for button in self.raw_buts:
             but = Button(15 + tmp, self.win_height - 40,
                          button["action"], button["label"])
             tmp += but.w + 40
@@ -146,6 +147,40 @@ class MazeDisplay:
             self.change_wall_color()
         elif (keycode == 108):
             self.change_logo_color()
+        elif (keycode == 61):  # '='
+            if (self.ratio < 1):
+                self.ratio += 1/10
+                self.recreate_win()
+        elif (keycode == 45):  # '-'
+            if (self.ratio > 0.4):
+                self.ratio -= 1/10
+                self.recreate_win()
+
+    def recreate_win(self):
+        self.m.mlx_loop_exit(self.mlx)
+        self.m.mlx_destroy_window(self.mlx, self.win)
+        (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
+        self.width = ceil(w * self.ratio)
+        self.win_height = ceil(h * self.ratio)
+        self.height = self.win_height - 100
+        self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
+                                         "A Maze Ing - relaforg & nahecre")
+        tmp = 0
+        self.buttons = []
+        for button in self.raw_buts:
+            but = Button(15 + tmp, self.win_height - 40,
+                         button["action"], button["label"])
+            tmp += but.w + 40
+            self.buttons.append(but)
+        self.cell_size = min(self.width // self.cols,
+                             self.height // self.rows) - 1
+        self.img_width = self.cols * self.cell_size + 1
+        self.img_height = self.rows * self.cell_size + 1
+        self.img = self.m.mlx_new_image(
+            self.mlx, self.img_width, self.img_height)
+        self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
+        self.bpp = bpp // 8
+        self.init()
 
     def change_wall_color(self):
         self.wall_color = choice(self.colors)
