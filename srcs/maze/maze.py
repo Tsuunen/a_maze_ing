@@ -45,8 +45,10 @@ class MazeDisplay:
         self.rows = maze.nbr_rows
         self.cell_size = min(self.width // self.cols,
                              self.height // self.rows) - 1
-        self.img_size = max(self.cols, self.rows) * self.cell_size + 1
-        self.img = self.m.mlx_new_image(self.mlx, self.img_size, self.img_size)
+        self.img_width = self.cols * self.cell_size + 1
+        self.img_height = self.rows * self.cell_size + 1
+        self.img = self.m.mlx_new_image(
+            self.mlx, self.img_width, self.img_height)
         self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
         self.bpp = bpp // 8
         self.show_path = True
@@ -163,7 +165,7 @@ class MazeDisplay:
             (color >> 24) & 0xFF,
             color & 0xFF,
         ))
-        self.addr[:] = px * (self.img_size ** 2)
+        self.addr[:] = px * (self.img_width * self.img_height)
 
     def toggle_path(self):
         if (self.show_path):
