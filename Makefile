@@ -5,7 +5,7 @@ MYPY_FLAGS=--warn-return-any --warn-unused-ignores \
 FILES=$(MAIN) srcs/
 
 run:
-	@python3 $(MAIN)
+	@python3 $(MAIN) config.txt
 
 debug:
 	@python3 -m pdb $(MAIN)

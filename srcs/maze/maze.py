@@ -4,11 +4,11 @@ from ..generator.maze_gen import MazeGen
 from ..config.parser import Config
 from random import randint, choice
 
-# Afficher la seed en haut a droite de l'écran
 # Afficher le path en animé
 # generer des maze aleatoire et conserver un affichage responsive
 # Essayer de faire une fenetre plus ou moins grande en fonction de la taille de l'ecran
 # Si affichage relatif a la taille de la fenetre rajouter des raccourcis pour agrandir/rapetissir la fenetre
+# Permettre d'afficher du texte dans une image
 
 
 class Button:
