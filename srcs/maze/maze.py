@@ -5,6 +5,10 @@ from ..config.parser import Config
 from random import randint, choice
 
 # Afficher le path en animé
+# generer des maze aleatoire et conserver un affichage responsive
+# Essayer de faire une fenetre plus ou moins grande en fonction de la taille de l'ecran
+# Afficher la seed en haut a droite de l'écran
+# Si affichage relatif a la taille de la fenetre rajouter des raccourcis pour agrandir/rapetissir la fenetre
 
 
 class Button:
@@ -170,7 +174,8 @@ class MazeDisplay:
         self.refresh()
 
     def draw(self):
-        self.fill_path()
+        if (self.show_path):
+            self.fill_path()
         x, y = 0, 0
         for line in self.maze.split("\n"):
             for c in line:
