@@ -1,5 +1,5 @@
 import random
-import sys
+from math import sqrt
 from ..config.parser import Config
 from ..maze.parser import Maze
 
@@ -142,6 +142,14 @@ class MazeGen:
             output.append(2)
         return output
 
+    def scramble(self) -> None:
+        """
+        removes random walls in the maze before generation in case of unperfect
+        maze
+        """
+        nb_remove: int = sqrt(random.randint(1, self.height * self.width))
+        ...
+
     def dfs(self, seed: int = None) -> None:
         """
         uses randomized depth first search algorithm to genarate th maze
@@ -149,7 +157,10 @@ class MazeGen:
         random.seed(seed)
         self.visited = [[0 for i in range(self.width)]
                         for j in range(self.height)]
+        self.visited[self.exit[1]][self.exit[0]] = 1
         self.ft_stamp_dfs()
+        if not self.is_perfect:
+            self.scramble()
         pos: list[tuple[int, int]] = [self.entry]
         while pos:
             self.visited[pos[-1][1]][pos[-1][0]] = 1
@@ -167,10 +178,8 @@ class MazeGen:
                 pos.append((pos[-1][0], pos[-1][1] + 1))
             if neighbors[0] == 3:
                 pos.append((pos[-1][0] - 1, pos[-1][1]))
-
-
-if __name__ == "__main__":
-    maze = MazeGen(69, 90, (0, 0), (50, 50))
-    maze.dfs()
-    sys.setrecursionlimit(100000000)
-    maze.export_maze()
+        self.visited = [[0 for i in range(self.width)]
+                        for j in range(self.height)]
+        self.ft_stamp_dfs()
+        self.dig_wall(self.exit, random.choice(self.neighbors(self.exit)))
+        self.visited = None
