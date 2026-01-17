@@ -15,11 +15,13 @@ class MazeGen:
         self.lst_repr = [[15 for i in range(self.width)]
                          for j in range(self.height)]
 
-    def ft_stamp_dfs(self) -> None:
+    def ft_stamp_dfs(self, error: bool) -> None:
         """
         put the '42 stamp' on the maze if possible
         """
         if self.width < 9 or self.height < 7:
+            if error:
+                print("42 logo cannot be represented(maze too small)")
             return
         center: tuple[int, int] = (self.width // 2, self.height // 2)
         stamp: list[tuple[int, int]] = [
@@ -44,6 +46,9 @@ class MazeGen:
         ]
         for coord in stamp:
             if coord == self.entry or coord == self.exit:
+                if error:
+                    print("42 logo cannot be represented(entry or exit present\
+ in the logo)")
                 return
         for coord in stamp:
             self.visited[coord[1]][coord[0]] = 1
@@ -60,7 +65,7 @@ class MazeGen:
         except Exception:
             return None
 
-    def __repr__(self):
+    def __repr__(self, error: bool):
         repr = ""
         for i in self.lst_repr:
             for j in i:
@@ -71,8 +76,9 @@ class MazeGen:
         try:
             repr += self.solve()
         except (TypeError):
-            print("Maze with no solution cannot be represented")
-            repr += ""
+            if error:
+                print("Maze with no solution cannot be represented")
+            repr += " "
         return repr
 
     def export_maze_file(self):
@@ -80,10 +86,10 @@ class MazeGen:
         export the list representation of the maze in a .txt file
         """
         with open(self.output_file, "w") as f:
-            f.write(self.__repr__())
+            f.write(self.__repr__(1))
 
     def export_maze_obj(self) -> None:
-        repr = self.__repr__()
+        repr = self.__repr__(0)
         return Maze(
             maze=repr[:(self.width + 1) * self.height],
             entry=self.entry,
@@ -107,16 +113,16 @@ class MazeGen:
         given a pos and a dirrection,
         removes the wall between a position and the destination
         """
-        if direction == 0:
+        if direction == 0 and self.lst_repr[pos[1]][pos[0]] & 1:
             self.lst_repr[pos[1]][pos[0]] -= 1
             self.lst_repr[pos[1] - 1][pos[0]] -= 4
-        elif direction == 1:
+        elif direction == 1 and self.lst_repr[pos[1]][pos[0]] & 2:
             self.lst_repr[pos[1]][pos[0]] -= 2
             self.lst_repr[pos[1]][pos[0] + 1] -= 8
-        elif direction == 2:
+        elif direction == 2 and self.lst_repr[pos[1]][pos[0]] & 4:
             self.lst_repr[pos[1]][pos[0]] -= 4
             self.lst_repr[pos[1] + 1][pos[0]] -= 1
-        elif direction == 3:
+        elif direction == 3 and self.lst_repr[pos[1]][pos[0]] & 8:
             self.lst_repr[pos[1]][pos[0]] -= 8
             self.lst_repr[pos[1]][pos[0] - 1] -= 2
 
@@ -147,8 +153,31 @@ class MazeGen:
         removes random walls in the maze before generation in case of unperfect
         maze
         """
-        nb_remove: int = sqrt(random.randint(1, self.height * self.width))
-        ...
+        nb_remove: int = int(sqrt(random.randint(1, self.height * self.width)))
+        i: int = 0
+        current: tuple[int, int]
+        while (i < nb_remove + 5):
+            current = (random.randint(0, self.width - 1),
+                       random.randint(0, self.height - 1))
+            if not self.visited[current[1]][current[0]]:
+                neighbors: list[int] = self.neighbors(current)
+                random.shuffle(neighbors)
+                self.dig_wall(current, neighbors[0])
+            i += 1
+
+    def remove_square_holes(self) -> None:
+        for line in range(1, self.height - 1):
+            for col in range(1, self.width - 1):
+                if self.lst_repr[line][col] == 0 and \
+                     not (self.lst_repr[line - 1][col] & 8 or
+                          self.lst_repr[line - 1][col] & 2) and \
+                     not (self.lst_repr[line][col - 1] & 1 or
+                          self.lst_repr[line][col - 1] & 4) and \
+                     not (self.lst_repr[line + 1][col] & 8 or
+                          self.lst_repr[line + 1][col] & 2) and \
+                     not (self.lst_repr[line][col + 1] & 1 or
+                          self.lst_repr[line][col + 1] & 4):
+                    self.lst_repr[line][col] = random.choice([7, 11, 13, 15])
 
     def dfs(self, seed: int = None) -> None:
         """
@@ -158,7 +187,7 @@ class MazeGen:
         self.visited = [[0 for i in range(self.width)]
                         for j in range(self.height)]
         self.visited[self.exit[1]][self.exit[0]] = 1
-        self.ft_stamp_dfs()
+        self.ft_stamp_dfs(1)
         if not self.is_perfect:
             self.scramble()
         pos: list[tuple[int, int]] = [self.entry]
@@ -178,8 +207,9 @@ class MazeGen:
                 pos.append((pos[-1][0], pos[-1][1] + 1))
             if neighbors[0] == 3:
                 pos.append((pos[-1][0] - 1, pos[-1][1]))
+        self.remove_square_holes()
         self.visited = [[0 for i in range(self.width)]
                         for j in range(self.height)]
-        self.ft_stamp_dfs()
+        self.ft_stamp_dfs(0)
         self.dig_wall(self.exit, random.choice(self.neighbors(self.exit)))
         self.visited = None
