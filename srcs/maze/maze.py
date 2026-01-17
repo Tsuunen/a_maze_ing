@@ -44,7 +44,6 @@ class MazeDisplay:
         self.cols = maze.nbr_cols
         self.rows = maze.nbr_rows
         self.seed = maze.seed
-        print(self.seed)
         self.cell_size = min(self.width // self.cols,
                              self.height // self.rows) - 1
         self.img_width = self.cols * self.cell_size + 1
@@ -106,8 +105,6 @@ class MazeDisplay:
         self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
         self.m.mlx_hook(self.win, 33, 0,
                         lambda _: self.m.mlx_loop_exit(self.mlx), None)
-        self.m.mlx_string_put(self.mlx, self.win, 15, 10,
-                              0xFFFFFFFF, "A Maze Ing")
         for i in self.buttons:
             self.m.mlx_string_put(self.mlx, self.win, i.x,
                                   i.y, 0xFFFFFFFF, i.label)
@@ -121,6 +118,16 @@ class MazeDisplay:
                                         self.cell_size) // 2,
                                        50 + (self.height - self.rows *
                                              self.cell_size) // 2)
+        eraser = self.m.mlx_new_image(self.mlx, self.width, 30)
+        eraser_addr, eraser_bpp, eraser_line_len, _ = self.m.mlx_get_data_addr(
+            eraser)
+        eraser_bpp = eraser_bpp // 8
+        px = bytes((0x00, 0x00, 0x00, 0xFF))
+        eraser_addr[:] = px * (self.width * 30)
+        self.m.mlx_put_image_to_window(self.mlx, self.win, eraser,
+                                       0, 10)
+        self.m.mlx_string_put(self.mlx, self.win, 15, 10,
+                              0xFFFFFFFF, f"A Maze Ing - seed = {self.seed}")
 
     def on_mouse(self, button, x, y, _):
         for i in self.buttons:
@@ -156,6 +163,7 @@ class MazeDisplay:
         maze = gen.export_maze_obj()
         self.maze = maze.maze
         self.path = maze.path
+        self.seed = maze.seed
         self.fill_img()
         self.draw()
         self.refresh()
