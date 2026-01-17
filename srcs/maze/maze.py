@@ -118,14 +118,10 @@ class MazeDisplay:
                                         self.cell_size) // 2,
                                        50 + (self.height - self.rows *
                                              self.cell_size) // 2)
-        eraser = self.m.mlx_new_image(self.mlx, self.width, 30)
-        eraser_addr, eraser_bpp, eraser_line_len, _ = self.m.mlx_get_data_addr(
-            eraser)
-        eraser_bpp = eraser_bpp // 8
-        px = bytes((0x00, 0x00, 0x00, 0xFF))
-        eraser_addr[:] = px * (self.width * 30)
-        self.m.mlx_put_image_to_window(self.mlx, self.win, eraser,
-                                       0, 10)
+        eraser = self.m.mlx_new_image(self.mlx, self.width, 20)
+        eraser_addr, _, _, _ = self.m.mlx_get_data_addr(eraser)
+        eraser_addr[:] = bytes((0x00, 0x00, 0x00, 0xFF)) * (self.width * 20)
+        self.m.mlx_put_image_to_window(self.mlx, self.win, eraser, 0, 10)
         self.m.mlx_string_put(self.mlx, self.win, 15, 10,
                               0xFFFFFFFF, f"A Maze Ing - seed = {self.seed}")
 
