@@ -157,7 +157,6 @@ class MazeDisplay:
                 self.recreate_win()
 
     def recreate_win(self):
-        self.m.mlx_loop_exit(self.mlx)
         self.m.mlx_destroy_window(self.mlx, self.win)
         (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
         self.width = ceil(w * self.ratio)
