@@ -11,6 +11,7 @@ class Config(BaseModel):
     exit: Tuple[int, int] = Field(min_length=2, max_length=2)
     output_file: str = Field()
     perfect: bool = Field()
+    seed: int | None = Field(default=None)
 
     @field_validator("entry", "exit", mode="before")
     @classmethod

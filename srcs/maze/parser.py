@@ -11,6 +11,7 @@ class Maze(BaseModel):
     path: str = Field()
     nbr_cols: int = Field(ge=1)
     nbr_rows: int = Field(ge=1)
+    seed: int | None = Field(default=None)
 
     @field_validator("entry", "exit", mode="before")
     @classmethod

@@ -1,5 +1,5 @@
-WIDTH=9
-HEIGHT=8
+WIDTH=8
+HEIGHT=12
 	#Ceci est un commentaire
 
 
