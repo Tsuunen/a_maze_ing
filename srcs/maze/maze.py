@@ -148,9 +148,9 @@ class MazeDisplay:
         elif (keycode == 108):
             self.change_logo_color()
         elif (keycode == 61):  # '='
-            if (self.ratio < 1):
-                self.ratio += 1/10
-                self.recreate_win()
+            # if (self.ratio < 1):
+            self.ratio += 1/10
+            self.recreate_win()
         elif (keycode == 45):  # '-'
             if (self.ratio > 0.4):
                 self.ratio -= 1/10
