@@ -3,8 +3,8 @@ from .parser import Maze
 from ..generator.maze_gen import MazeGen
 from ..config.parser import Config
 from random import randint, choice
+from math import ceil
 
-# Afficher le path en animé
 # generer des maze aleatoire et conserver un affichage responsive
 # Essayer de faire une fenetre plus ou moins grande en fonction de la taille de l'ecran
 # Si affichage relatif a la taille de la fenetre rajouter des raccourcis pour agrandir/rapetissir la fenetre
@@ -30,11 +30,13 @@ class Button:
 class MazeDisplay:
     def __init__(self, maze: Maze, config: Config):
         self.config = config
-        self.width = 1080
-        self.height = 720
-        self.win_height = 820
+        self.ratio = 8/10
         self.m = Mlx()
         self.mlx = self.m.mlx_init()
+        (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
+        self.width = ceil(w * self.ratio)
+        self.win_height = ceil(h * self.ratio)
+        self.height = self.win_height - 100
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
         self.maze = maze.maze
@@ -72,18 +74,17 @@ class MazeDisplay:
                        0x7F8C8DFF,]
         self.wall_color = 0xFFFFFFFF
         self.logo_color = 0xFFFFFFFF
-        tmp = 0
-        raw_buts = [
+        self.raw_buts = [
             {
                 "label": "r: New maze",
                 "action": self.regen_maze
             },
             {
-                "label": "p: Toggle path on and off",
+                "label": "p: Toggle path",
                 "action": self.toggle_path
             },
             {
-                "label": "w: change wall color",
+                "label": "w: Change wall color",
                 "action": self.change_wall_color
             },
             {
@@ -91,12 +92,14 @@ class MazeDisplay:
                 "action": self.change_logo_color
             },
             {
-                "label": "q: quit",
+                "label": "q: Quit",
                 "action": lambda: self.m.mlx_loop_exit(self.mlx)
             }
         ]
-        for button in raw_buts:
-            but = Button(15 + tmp, 790, button["action"], button["label"])
+        tmp = 0
+        for button in self.raw_buts:
+            but = Button(15 + tmp, self.win_height - 40,
+                         button["action"], button["label"])
             tmp += but.w + 40
             self.buttons.append(but)
 
@@ -112,18 +115,20 @@ class MazeDisplay:
         self.refresh()
         self.m.mlx_loop(self.mlx)
 
-    def refresh(self):
+    def refresh(self, full=True):
         self.m.mlx_put_image_to_window(self.mlx, self.win, self.img,
                                        (self.width - self.cols *
                                         self.cell_size) // 2,
                                        50 + (self.height - self.rows *
                                              self.cell_size) // 2)
-        eraser = self.m.mlx_new_image(self.mlx, self.width, 20)
-        eraser_addr, _, _, _ = self.m.mlx_get_data_addr(eraser)
-        eraser_addr[:] = bytes((0x00, 0x00, 0x00, 0xFF)) * (self.width * 20)
-        self.m.mlx_put_image_to_window(self.mlx, self.win, eraser, 0, 10)
-        self.m.mlx_string_put(self.mlx, self.win, 15, 10,
-                              0xFFFFFFFF, f"A Maze Ing - seed = {self.seed}")
+        if (full):
+            eraser = self.m.mlx_new_image(self.mlx, self.width, 20)
+            eraser_addr, _, _, _ = self.m.mlx_get_data_addr(eraser)
+            eraser_addr[:] = bytes(
+                (0x00, 0x00, 0x00, 0xFF)) * (self.width * 20)
+            self.m.mlx_put_image_to_window(self.mlx, self.win, eraser, 0, 10)
+            self.m.mlx_string_put(self.mlx, self.win, 15, 10, 0xFFFFFFFF,
+                                  f"A Maze Ing - seed = {self.seed}")
 
     def on_mouse(self, button, x, y, _):
         for i in self.buttons:
@@ -142,6 +147,39 @@ class MazeDisplay:
             self.change_wall_color()
         elif (keycode == 108):
             self.change_logo_color()
+        elif (keycode == 61):  # '='
+            # if (self.ratio < 1):
+            self.ratio += 1/10
+            self.recreate_win()
+        elif (keycode == 45):  # '-'
+            if (self.ratio > 0.4):
+                self.ratio -= 1/10
+                self.recreate_win()
+
+    def recreate_win(self):
+        self.m.mlx_destroy_window(self.mlx, self.win)
+        (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
+        self.width = ceil(w * self.ratio)
+        self.win_height = ceil(h * self.ratio)
+        self.height = self.win_height - 100
+        self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
+                                         "A Maze Ing - relaforg & nahecre")
+        tmp = 0
+        self.buttons = []
+        for button in self.raw_buts:
+            but = Button(15 + tmp, self.win_height - 40,
+                         button["action"], button["label"])
+            tmp += but.w + 40
+            self.buttons.append(but)
+        self.cell_size = min(self.width // self.cols,
+                             self.height // self.rows) - 1
+        self.img_width = self.cols * self.cell_size + 1
+        self.img_height = self.rows * self.cell_size + 1
+        self.img = self.m.mlx_new_image(
+            self.mlx, self.img_width, self.img_height)
+        self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
+        self.bpp = bpp // 8
+        self.init()
 
     def change_wall_color(self):
         self.wall_color = choice(self.colors)
@@ -179,11 +217,9 @@ class MazeDisplay:
         else:
             self.fill_path()
         self.show_path = not self.show_path
-        self.refresh()
+        self.refresh(False)
 
     def draw(self):
-        if (self.show_path):
-            self.fill_path()
         x, y = 0, 0
         for line in self.maze.split("\n"):
             for c in line:
@@ -197,6 +233,8 @@ class MazeDisplay:
                            * self.cell_size, 0x00FF00FF)
             self.fill_cell(self.exit[0] * self.cell_size, self.exit[1]
                            * self.cell_size, 0xFF0000FF)
+        if (self.show_path):
+            self.fill_path()
 
     def fill_path(self, color: int = 0xC0C0C0FF):
         x, y = self.entry[0], self.entry[1]

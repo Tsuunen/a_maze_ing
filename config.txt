@@ -1,5 +1,5 @@
-WIDTH=100
-HEIGHT=100
+WIDTH=650
+HEIGHT=650
 	#Ceci est un commentaire
 
 
