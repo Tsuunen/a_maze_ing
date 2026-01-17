@@ -15,12 +15,74 @@ class MazeGen:
         if (conf.seed):
             self.seed = conf.seed
         else:
-            self.seed = random.randrange(2**32)
+            self.seed = random.randint(0, 2**32 - 1)
         random.seed(self.seed)
+        self.visited: list[list[int]]
+        self.shape = "diamond"
         self.lst_repr = [[15 for i in range(self.width)]
                          for j in range(self.height)]
 
-    def ft_stamp_dfs(self, error: bool) -> None:
+    def project_in(self) -> None:
+        while self.lst_repr[self.entry[1]][self.entry[0]] == -1:
+            if self.entry[0] < self.width // 2:
+                self.entry = (self.entry[0] + 1, self.entry[1])
+            else:
+                self.entry = (self.entry[0] - 1, self.entry[1])
+            if self.entry[1] < self.height // 2:
+                self.entry = (self.entry[0], self.entry[1] + 1)
+            else:
+                self.entry = (self.entry[0], self.entry[1] - 1)
+
+        while self.lst_repr[self.exit[1]][self.exit[0]] == -1:
+            if self.exit[0] < self.width // 2:
+                self.exit = (self.exit[0] + 1, self.exit[1])
+            else:
+                self.exit = (self.exit[0] - 1, self.exit[1])
+            if self.exit[1] < self.height // 2:
+                self.exit = (self.exit[0], self.exit[1] + 1)
+            else:
+                self.exit = (self.exit[0], self.exit[1] - 1)
+
+    def shape_stamp(self) -> None:
+        self.visited = [[0 for i in range(self.width)]
+                        for j in range(self.height)]
+        if self.shape == "rectangle":
+            return
+
+        if self.shape in ["square", "circle", "donut", "diamond"]:
+            size: int = min(self.height, self.width)
+            if self.entry[0] > size or self.entry[1] > size or \
+               self.exit[0] > size or self.exit[1] > size:
+                print("Error: cannot generate this maze shape(entry or \
+exit outside the shape)")
+                return
+            self.width, self.height = size, size
+            self.lst_repr = [[15 for i in range(self.width)]
+                             for j in range(self.height)]
+            self.visited = [[0 for i in range(self.width)]
+                            for j in range(self.height)]
+
+        if self.shape in ["circle", "donut"]:
+            center: tuple[int, int] = (size // 2, size // 2)
+            for line in range(size):
+                for col in range(size):
+                    if sqrt((center[0] - line)**2 + (center[1] - col)**2) \
+                         > size // 2:
+                        self.lst_repr[line][col] = -1
+                        self.visited[line][col] = -1
+            self.project_in()
+
+        if self.shape == "diamond":
+            from .solver import AStar
+            center: tuple[int, int] = (size // 2, size // 2)
+            for line in range(size):
+                for col in range(size):
+                    if AStar.dist(center, (col, line)) > size // 2:
+                        self.lst_repr[line][col] = -1
+                        self.visited[line][col] = -1
+            self.project_in()
+
+    def ft_stamp(self, error: bool) -> None:
         """
         put the '42 stamp' on the maze if possible
         """
@@ -66,6 +128,8 @@ class MazeGen:
         hexa = ["0", "1", "2", "3", "4", "5", "6", "7",
                 "8", "9", "A", "B", "C", "D", "E", "F"]
         try:
+            if x == -1:
+                return " "
             return hexa[x]
         except Exception:
             return None
@@ -137,12 +201,6 @@ class MazeGen:
         takes a pos in the currently generating maze (pos[x, y])
         return the list of unexplored neighbors
         """
-        """
-        if pos[0] < 0 or pos[0] >= self.width or \
-           pos[1] < 0 or pos[1] >= self.height:
-            return []
-        #print(pos)
-        """
         output = []
         if pos[0] - 1 >= 0 and self.visited[pos[1]][pos[0] - 1] == 0:
             output.append(3)
@@ -189,12 +247,13 @@ class MazeGen:
         """
         uses randomized depth first search algorithm to genarate th maze
         """
-        self.visited = [[0 for i in range(self.width)]
-                        for j in range(self.height)]
+        self.shape_stamp()
         self.visited[self.exit[1]][self.exit[0]] = 1
-        self.ft_stamp_dfs(1)
+        self.ft_stamp(1)
+
         if not self.is_perfect:
             self.scramble()
+
         pos: list[tuple[int, int]] = [self.entry]
         while pos:
             self.visited[pos[-1][1]][pos[-1][0]] = 1
@@ -202,6 +261,7 @@ class MazeGen:
             if not neighbors:
                 pos.pop()
                 continue
+
             random.shuffle(neighbors)
             self.dig_wall(pos[-1], neighbors[0])
             if neighbors[0] == 0:
@@ -213,8 +273,12 @@ class MazeGen:
             if neighbors[0] == 3:
                 pos.append((pos[-1][0] - 1, pos[-1][1]))
         self.remove_square_holes()
-        self.visited = [[0 for i in range(self.width)]
-                        for j in range(self.height)]
-        self.ft_stamp_dfs(0)
+
+        for line in range(self.height):
+            for col in range(self.width):
+                if self.visited[line][col] == 1:
+                    self.visited[line][col] = 0
+
+        self.ft_stamp(0)
         self.dig_wall(self.exit, random.choice(self.neighbors(self.exit)))
         self.visited = None
