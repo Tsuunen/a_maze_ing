@@ -4,10 +4,10 @@ from ..generator.maze_gen import MazeGen
 from ..config.parser import Config
 from random import randint, choice
 
+# Afficher la seed en haut a droite de l'écran
 # Afficher le path en animé
 # generer des maze aleatoire et conserver un affichage responsive
 # Essayer de faire une fenetre plus ou moins grande en fonction de la taille de l'ecran
-# Afficher la seed en haut a droite de l'écran
 # Si affichage relatif a la taille de la fenetre rajouter des raccourcis pour agrandir/rapetissir la fenetre
 
 
@@ -43,10 +43,13 @@ class MazeDisplay:
         self.exit = maze.exit
         self.cols = maze.nbr_cols
         self.rows = maze.nbr_rows
+        self.seed = maze.seed
         self.cell_size = min(self.width // self.cols,
                              self.height // self.rows) - 1
-        self.img_size = max(self.cols, self.rows) * self.cell_size + 1
-        self.img = self.m.mlx_new_image(self.mlx, self.img_size, self.img_size)
+        self.img_width = self.cols * self.cell_size + 1
+        self.img_height = self.rows * self.cell_size + 1
+        self.img = self.m.mlx_new_image(
+            self.mlx, self.img_width, self.img_height)
         self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
         self.bpp = bpp // 8
         self.show_path = True
@@ -102,8 +105,6 @@ class MazeDisplay:
         self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
         self.m.mlx_hook(self.win, 33, 0,
                         lambda _: self.m.mlx_loop_exit(self.mlx), None)
-        self.m.mlx_string_put(self.mlx, self.win, 15, 10,
-                              0xFFFFFFFF, "A Maze Ing")
         for i in self.buttons:
             self.m.mlx_string_put(self.mlx, self.win, i.x,
                                   i.y, 0xFFFFFFFF, i.label)
@@ -117,6 +118,12 @@ class MazeDisplay:
                                         self.cell_size) // 2,
                                        50 + (self.height - self.rows *
                                              self.cell_size) // 2)
+        eraser = self.m.mlx_new_image(self.mlx, self.width, 20)
+        eraser_addr, _, _, _ = self.m.mlx_get_data_addr(eraser)
+        eraser_addr[:] = bytes((0x00, 0x00, 0x00, 0xFF)) * (self.width * 20)
+        self.m.mlx_put_image_to_window(self.mlx, self.win, eraser, 0, 10)
+        self.m.mlx_string_put(self.mlx, self.win, 15, 10,
+                              0xFFFFFFFF, f"A Maze Ing - seed = {self.seed}")
 
     def on_mouse(self, button, x, y, _):
         for i in self.buttons:
@@ -152,6 +159,7 @@ class MazeDisplay:
         maze = gen.export_maze_obj()
         self.maze = maze.maze
         self.path = maze.path
+        self.seed = maze.seed
         self.fill_img()
         self.draw()
         self.refresh()
@@ -163,7 +171,7 @@ class MazeDisplay:
             (color >> 24) & 0xFF,
             color & 0xFF,
         ))
-        self.addr[:] = px * (self.img_size ** 2)
+        self.addr[:] = px * (self.img_width * self.img_height)
 
     def toggle_path(self):
         if (self.show_path):

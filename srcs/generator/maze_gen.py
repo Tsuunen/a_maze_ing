@@ -12,6 +12,11 @@ class MazeGen:
         self.exit = conf.exit
         self.output_file = conf.output_file
         self.is_perfect = conf.perfect
+        if (conf.seed):
+            self.seed = conf.seed
+        else:
+            self.seed = random.randrange(2**32)
+        random.seed(self.seed)
         self.lst_repr = [[15 for i in range(self.width)]
                          for j in range(self.height)]
 
@@ -96,7 +101,8 @@ class MazeGen:
             exit=self.exit,
             path=repr.splitlines()[self.height + 3],
             nbr_cols=self.width,
-            nbr_rows=self.height
+            nbr_rows=self.height,
+            seed=self.seed
         )
 
     def solve(self) -> str:
@@ -179,11 +185,10 @@ class MazeGen:
                           self.lst_repr[line][col + 1] & 4):
                     self.lst_repr[line][col] = random.choice([7, 11, 13, 15])
 
-    def dfs(self, seed: int = None) -> None:
+    def dfs(self) -> None:
         """
         uses randomized depth first search algorithm to genarate th maze
         """
-        random.seed(seed)
         self.visited = [[0 for i in range(self.width)]
                         for j in range(self.height)]
         self.visited[self.exit[1]][self.exit[0]] = 1
