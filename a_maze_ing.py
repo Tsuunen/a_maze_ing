@@ -15,6 +15,6 @@ if (__name__ == "__main__"):
         maze.dfs()
         maze.export_maze_file()
         m = MazeDisplay(maze.export_maze_obj(), config)
-        m.init()
+        m.run()
     except Exception as e:
         print(e)
