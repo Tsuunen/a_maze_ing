@@ -10,6 +10,7 @@ if (__name__ == "__main__"):
     try:
         parser = ConfigParser(argv[1])
         config = parser.extract()
+        print(config)
         if (config is None):
             raise ValueError("The config is invalid")
         maze = MazeGen(config)

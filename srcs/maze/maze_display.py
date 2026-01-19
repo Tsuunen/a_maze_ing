@@ -173,6 +173,8 @@ class MazeDisplay:
                 file.write(f"PERFECT={conf.perfect}\n")
                 if (conf.seed):
                     file.write(f"SEED={conf.seed}\n")
+                else:
+                    file.write(f"SEED={self.seed}\n")
                 if (conf.shape):
                     file.write(f"SHAPE={conf.shape}\n")
             print("Success: Configuration file successfully exported")
