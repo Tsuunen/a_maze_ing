@@ -18,11 +18,32 @@ class MazeGen:
             self.seed = random.randint(0, 2**32 - 1)
         random.seed(self.seed)
         self.visited: list[list[int]]
-        self.shape = "diamond"
+        self.shape = "donut"
         self.lst_repr = [[15 for i in range(self.width)]
                          for j in range(self.height)]
 
+    def disalign(self) -> None:
+        """
+        disalign entry and exit if they are on the same cell
+        """
+        direction: int = self.neighbors(self.entry)[0]
+        match direction:
+            case 0:
+                self.exit = (self.entry[0] - 1, self.entry[1])
+            case 1:
+                self.exit = (self.entry[0], self.entry[1] + 1)
+            case 2:
+                self.exit = (self.entry[0] + 1, self.entry[1])
+            case 3:
+                self.exit = (self.entry[0], self.entry[1] - 1)
+
+        print("entry and exit have the same projection on the shape, \
+exit has been moved")
+
     def project_in(self) -> None:
+        """
+        force entry and exit inside the maze in case of special shape
+        """
         while self.lst_repr[self.entry[1]][self.entry[0]] == -1:
             if self.entry[0] < self.width // 2:
                 self.entry = (self.entry[0] + 1, self.entry[1])
@@ -43,7 +64,46 @@ class MazeGen:
             else:
                 self.exit = (self.exit[0], self.exit[1] - 1)
 
+        if self.entry == self.exit:
+            self.disalign()
+
+    def project_out(self) -> None:
+        """
+        force entry and exit inside the maze in case of special shape
+        """
+        while self.lst_repr[self.entry[1]][self.entry[0]] == -1:
+            if self.entry[0] > self.width // 2:
+                self.entry = (self.entry[0] + 1, self.entry[1])
+            else:
+                self.entry = (self.entry[0] - 1, self.entry[1])
+            if self.entry[1] > self.height // 2:
+                self.entry = (self.entry[0], self.entry[1] + 1)
+            else:
+                self.entry = (self.entry[0], self.entry[1] - 1)
+
+        while self.lst_repr[self.exit[1]][self.exit[0]] == -1:
+            if self.exit[0] > self.width // 2:
+                self.exit = (self.exit[0] + 1, self.exit[1])
+            else:
+                self.exit = (self.exit[0] - 1, self.exit[1])
+            if self.exit[1] > self.height // 2:
+                self.exit = (self.exit[0], self.exit[1] + 1)
+            else:
+                self.exit = (self.exit[0], self.exit[1] - 1)
+
+        if self.entry == self.exit:
+            self.disalign()
+
     def shape_stamp(self) -> None:
+        """
+        makes the maze looks lkie certain shape:
+        rectangle
+        square
+        diamond
+        circle
+        donut
+        ellipse
+        """
         self.visited = [[0 for i in range(self.width)]
                         for j in range(self.height)]
         if self.shape == "rectangle":
@@ -72,6 +132,16 @@ exit outside the shape)")
                         self.visited[line][col] = -1
             self.project_in()
 
+        if self.shape == "donut":
+            center: tuple[int, int] = (size // 2, size // 2)
+            for line in range(size):
+                for col in range(size):
+                    if sqrt((center[0] - line)**2 + (center[1] - col)**2) \
+                         < size // 5:
+                        self.lst_repr[line][col] = -1
+                        self.visited[line][col] = -1
+            self.project_out()
+
         if self.shape == "diamond":
             from .solver import AStar
             center: tuple[int, int] = (size // 2, size // 2)
@@ -80,6 +150,20 @@ exit outside the shape)")
                     if AStar.dist(center, (col, line)) > size // 2:
                         self.lst_repr[line][col] = -1
                         self.visited[line][col] = -1
+            self.project_in()
+
+        if self.shape == "ellipse":
+            center: tuple[int, int] = (self.width // 2, self.height // 2)
+            for line in range(self.height):
+                for col in range(self.width):
+                    if (col - center[0]) ** 2 / center[0] ** 2 + \
+                       (line - center[1]) ** 2 / center[1] ** 2 > 1:
+                        self.lst_repr[line][col] = -1
+                        self.visited[line][col] = -1
+            for i in self.visited:
+                for j in i:
+                    print(j if j == 0 else 1, end="")
+                print("\n")
             self.project_in()
 
     def ft_stamp(self, error: bool) -> None:
@@ -119,6 +203,7 @@ exit outside the shape)")
                 return
         for coord in stamp:
             self.visited[coord[1]][coord[0]] = 1
+            self.lst_repr[coord[1]][coord[0]] = 15
 
     @staticmethod
     def hexa(x: int) -> str | None:
@@ -158,6 +243,9 @@ exit outside the shape)")
             f.write(self.__repr__(1))
 
     def export_maze_obj(self) -> None:
+        """
+        export the maze as an object for further treatment
+        """
         repr = self.__repr__(0)
         return Maze(
             maze=repr[:(self.width + 1) * self.height],
@@ -230,6 +318,9 @@ exit outside the shape)")
             i += 1
 
     def remove_square_holes(self) -> None:
+        """
+        removes hole larger than 2*3 by filling the center with 3 walls
+        """
         for line in range(1, self.height - 1):
             for col in range(1, self.width - 1):
                 if self.lst_repr[line][col] == 0 and \
