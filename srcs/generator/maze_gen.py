@@ -18,7 +18,7 @@ class MazeGen:
             self.seed = random.randint(0, 2**32 - 1)
         random.seed(self.seed)
         self.visited: list[list[int]]
-        self.shape = "square"
+        self.shape = conf.shape
         self.lst_repr = [[15 for i in range(self.width)]
                          for j in range(self.height)]
 
@@ -95,7 +95,8 @@ exit has been moved")
             self.disalign()
 
     def project_in_square(self, size) -> None:
-        self.entry = (min(self.entry[0], size - 1), min(self.entry[1], size - 1))
+        self.entry = (min(self.entry[0], size - 1),
+                      min(self.entry[1], size - 1))
         self.exit = (min(self.exit[0], size - 1), min(self.exit[1], size - 1))
         print("entry or exit was outside the maze square, they have been moved\
  in")
@@ -132,7 +133,7 @@ exit has been moved")
             for line in range(size):
                 for col in range(size):
                     if sqrt((center[0] - line)**2 + (center[1] - col)**2) \
-                         > size // 2:
+                            > size // 2:
                         self.lst_repr[line][col] = -1
                         self.visited[line][col] = -1
             self.project_in()
@@ -142,7 +143,7 @@ exit has been moved")
             for line in range(size):
                 for col in range(size):
                     if sqrt((center[0] - line)**2 + (center[1] - col)**2) \
-                         < size // 5:
+                            < size // 5:
                         self.lst_repr[line][col] = -1
                         self.visited[line][col] = -1
             self.project_out()
@@ -325,14 +326,14 @@ exit has been moved")
         for line in range(1, self.height - 1):
             for col in range(1, self.width - 1):
                 if self.lst_repr[line][col] == 0 and \
-                     not (self.lst_repr[line - 1][col] & 8 or
-                          self.lst_repr[line - 1][col] & 2) and \
-                     not (self.lst_repr[line][col - 1] & 1 or
-                          self.lst_repr[line][col - 1] & 4) and \
-                     not (self.lst_repr[line + 1][col] & 8 or
-                          self.lst_repr[line + 1][col] & 2) and \
-                     not (self.lst_repr[line][col + 1] & 1 or
-                          self.lst_repr[line][col + 1] & 4):
+                    not (self.lst_repr[line - 1][col] & 8 or
+                         self.lst_repr[line - 1][col] & 2) and \
+                    not (self.lst_repr[line][col - 1] & 1 or
+                         self.lst_repr[line][col - 1] & 4) and \
+                    not (self.lst_repr[line + 1][col] & 8 or
+                         self.lst_repr[line + 1][col] & 2) and \
+                    not (self.lst_repr[line][col + 1] & 1 or
+                         self.lst_repr[line][col + 1] & 4):
                     self.lst_repr[line][col] = random.choice([7, 11, 13, 15])
 
     def dfs(self) -> None:

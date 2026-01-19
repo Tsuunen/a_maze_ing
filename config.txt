@@ -1,10 +1,7 @@
-WIDTH=51
-HEIGHT=100
-	#Ceci est un commentaire
-
-
-		ENTRY=49, 80
-EXIT=1, 1
-
+WIDTH=94
+HEIGHT=6
+ENTRY=80, 5
+EXIT=43, 0
 OUTPUT_FILE=maze.txt
 PERFECT=False
+SHAPE=square
