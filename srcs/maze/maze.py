@@ -6,9 +6,10 @@ from random import randint, choice
 from math import ceil
 
 # generer des maze aleatoire et conserver un affichage responsive
-# Essayer de faire une fenetre plus ou moins grande en fonction de la taille de l'ecran
-# Si affichage relatif a la taille de la fenetre rajouter des raccourcis pour agrandir/rapetissir la fenetre
+# Exporter la config d'un maze aleatoire
 # Permettre d'afficher du texte dans une image
+# zoom dans le maze avec scroll
+# Mettre les boutons dans une nouvelles petite fenetre
 
 
 class Button:
@@ -30,13 +31,11 @@ class Button:
 class MazeDisplay:
     def __init__(self, maze: Maze, config: Config):
         self.config = config
-        self.ratio = 8/10
+        # self.ratio = 8/10
+        self.ratio = 3/10
         self.m = Mlx()
         self.mlx = self.m.mlx_init()
-        (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
-        self.width = ceil(w * self.ratio)
-        self.win_height = ceil(h * self.ratio)
-        self.height = self.win_height - 100
+        self._compute_geometry()
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
         self.maze = maze.maze
@@ -46,14 +45,7 @@ class MazeDisplay:
         self.cols = maze.nbr_cols
         self.rows = maze.nbr_rows
         self.seed = maze.seed
-        self.cell_size = min(self.width // self.cols,
-                             self.height // self.rows) - 1
-        self.img_width = self.cols * self.cell_size + 1
-        self.img_height = self.rows * self.cell_size + 1
-        self.img = self.m.mlx_new_image(
-            self.mlx, self.img_width, self.img_height)
-        self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
-        self.bpp = bpp // 8
+        self._compute_img()
         self.show_path = True
         self.buttons = []
         self.colors = [0x1ABC9CFF,
@@ -103,6 +95,22 @@ class MazeDisplay:
             tmp += but.w + 40
             self.buttons.append(but)
 
+    def _compute_geometry(self):
+        (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
+        self.width = ceil(w * self.ratio)
+        self.win_height = ceil(h * self.ratio)
+        self.height = self.win_height - 100
+
+    def _compute_img(self):
+        self.cell_size = min(self.width // self.cols,
+                             self.height // self.rows) - 1
+        self.img_width = self.cols * self.cell_size + 1
+        self.img_height = self.rows * self.cell_size + 1
+        self.img = self.m.mlx_new_image(
+            self.mlx, self.img_width, self.img_height)
+        self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
+        self.bpp = bpp // 8
+
     def init(self):
         self.m.mlx_key_hook(self.win, self.key_pressed, None)
         self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
@@ -113,6 +121,9 @@ class MazeDisplay:
                                   i.y, 0xFFFFFFFF, i.label)
         self.draw()
         self.refresh()
+
+    def run(self):
+        self.init()
         self.m.mlx_loop(self.mlx)
 
     def refresh(self, full=True):
@@ -131,10 +142,11 @@ class MazeDisplay:
                                   f"A Maze Ing - seed = {self.seed}")
 
     def on_mouse(self, button, x, y, _):
-        for i in self.buttons:
-            if (i.contains(x, y)):
-                i.action()
-                return
+        if (button == 1):
+            for i in self.buttons:
+                if (i.contains(x, y)):
+                    i.action()
+                    return
 
     def key_pressed(self, keycode: int, _):
         if (keycode == 113):  # 'q'
@@ -143,12 +155,11 @@ class MazeDisplay:
             self.toggle_path()
         elif (keycode == 114):  # 'r'
             self.regen_maze()
-        elif (keycode == 119):
+        elif (keycode == 119):  # 'w'
             self.change_wall_color()
-        elif (keycode == 108):
+        elif (keycode == 108):  # 'l'
             self.change_logo_color()
         elif (keycode == 61):  # '='
-            # if (self.ratio < 1):
             self.ratio += 1/10
             self.recreate_win()
         elif (keycode == 45):  # '-'
@@ -158,10 +169,7 @@ class MazeDisplay:
 
     def recreate_win(self):
         self.m.mlx_destroy_window(self.mlx, self.win)
-        (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
-        self.width = ceil(w * self.ratio)
-        self.win_height = ceil(h * self.ratio)
-        self.height = self.win_height - 100
+        self._compute_geometry()
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
         tmp = 0
@@ -171,14 +179,7 @@ class MazeDisplay:
                          button["action"], button["label"])
             tmp += but.w + 40
             self.buttons.append(but)
-        self.cell_size = min(self.width // self.cols,
-                             self.height // self.rows) - 1
-        self.img_width = self.cols * self.cell_size + 1
-        self.img_height = self.rows * self.cell_size + 1
-        self.img = self.m.mlx_new_image(
-            self.mlx, self.img_width, self.img_height)
-        self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
-        self.bpp = bpp // 8
+        self._compute_img()
         self.init()
 
     def change_wall_color(self):
@@ -236,60 +237,72 @@ class MazeDisplay:
         if (self.show_path):
             self.fill_path()
 
+    def _connect_south(self, x: int, y: int, color: int):
+        if (self.cell_size == 2):
+            self.put_pixel(x * self.cell_size + 1,
+                           y * self.cell_size + 2, color)
+        elif (self.cell_size == 3):
+            self.put_line(x * self.cell_size + 1, y *
+                          self.cell_size + self.cell_size, 2, color)
+        else:
+            for i in range(3):
+                self.put_line(x * self.cell_size + 2, y *
+                              self.cell_size + self.cell_size - 1 + i,
+                              self.cell_size - 3, color)
+
+    def _connect_north(self, x: int, y: int, color: int):
+        if (self.cell_size == 2):
+            self.put_pixel(x * self.cell_size + 1,
+                           y * self.cell_size, color)
+        elif (self.cell_size == 3):
+            self.put_line(x * self.cell_size + 1, y *
+                          self.cell_size, 2, color)
+        else:
+            for i in range(3):
+                self.put_line(x * self.cell_size + 2, y *
+                              self.cell_size - 1 + i,
+                              self.cell_size - 3, color)
+
+    def _connect_west(self, x: int, y: int, color: int):
+        if (self.cell_size == 2):
+            self.put_pixel(x * self.cell_size,
+                           y * self.cell_size + 1, color)
+        elif (self.cell_size == 3):
+            self.put_col(x * self.cell_size, y *
+                         self.cell_size + 1, 2, color)
+        else:
+            for i in range(3):
+                self.put_col(x * self.cell_size - 1 + i, y *
+                             self.cell_size + 2, self.cell_size - 3,
+                             color)
+
+    def _connect_east(self, x: int, y: int, color: int):
+        if (self.cell_size == 2):
+            self.put_pixel(x * self.cell_size + 2,
+                           y * self.cell_size + 1, color)
+        elif (self.cell_size == 3):
+            self.put_col(x * self.cell_size + self.cell_size, y *
+                         self.cell_size + 1, 2, color)
+        else:
+            for i in range(3):
+                self.put_col(x * self.cell_size + self.cell_size - 1
+                             + i, y * self.cell_size + 2,
+                             self.cell_size - 3, color)
+
     def fill_path(self, color: int = 0xC0C0C0FF):
         x, y = self.entry[0], self.entry[1]
         for j in range(len(self.path)):
             if (self.path[j] == "S"):
-                if (self.cell_size == 2):
-                    self.put_pixel(x * self.cell_size + 1,
-                                   y * self.cell_size + 2, color)
-                elif (self.cell_size == 3):
-                    self.put_line(x * self.cell_size + 1, y *
-                                  self.cell_size + self.cell_size, 2, color)
-                else:
-                    for i in range(3):
-                        self.put_line(x * self.cell_size + 2, y *
-                                      self.cell_size + self.cell_size - 1 + i,
-                                      self.cell_size - 3, color)
+                self._connect_south(x, y, color)
                 y += 1
             elif (self.path[j] == "N"):
-                if (self.cell_size == 2):
-                    self.put_pixel(x * self.cell_size + 1,
-                                   y * self.cell_size, color)
-                elif (self.cell_size == 3):
-                    self.put_line(x * self.cell_size + 1, y *
-                                  self.cell_size, 2, color)
-                else:
-                    for i in range(3):
-                        self.put_line(x * self.cell_size + 2, y *
-                                      self.cell_size - 1 + i,
-                                      self.cell_size - 3, color)
+                self._connect_north(x, y, color)
                 y -= 1
             elif (self.path[j] == "W"):
-                if (self.cell_size == 2):
-                    self.put_pixel(x * self.cell_size,
-                                   y * self.cell_size + 1, color)
-                elif (self.cell_size == 3):
-                    self.put_col(x * self.cell_size, y *
-                                 self.cell_size + 1, 2, color)
-                else:
-                    for i in range(3):
-                        self.put_col(x * self.cell_size - 1 + i, y *
-                                     self.cell_size + 2, self.cell_size - 3,
-                                     color)
+                self._connect_west(x, y, color)
                 x -= 1
             elif (self.path[j] == "E"):
-                if (self.cell_size == 2):
-                    self.put_pixel(x * self.cell_size + 2,
-                                   y * self.cell_size + 1, color)
-                elif (self.cell_size == 3):
-                    self.put_col(x * self.cell_size + self.cell_size, y *
-                                 self.cell_size + 1, 2, color)
-                else:
-                    for i in range(3):
-                        self.put_col(x * self.cell_size + self.cell_size - 1
-                                     + i, y * self.cell_size + 2,
-                                     self.cell_size - 3, color)
+                self._connect_east(x, y, color)
                 x += 1
             if (j != len(self.path) - 1):
                 self.fill_cell(x * self.cell_size, y * self.cell_size, color)
