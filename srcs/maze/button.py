@@ -2,7 +2,7 @@ from typing import Callable, Any
 
 
 class Button:
-    def __init__(self, x: int, y: int, action: Callable[[Any], Any],
+    def __init__(self, x: int, y: int, action: Callable[[], Any],
                  label: str) -> None:
         self.x = x
         self.y = y

@@ -244,7 +244,7 @@ exit has been moved")
         with open(self.output_file, "w") as f:
             f.write(self.__repr__(1))
 
-    def export_maze_obj(self) -> None:
+    def export_maze_obj(self) -> Maze:
         """
         export the maze as an object for further treatment
         """

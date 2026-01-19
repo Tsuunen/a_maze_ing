@@ -8,14 +8,14 @@ from .maze_display import MazeDisplay
 
 
 class App:
-    def __init__(self, maze: Maze, config: Config):
+    def __init__(self, maze: Maze, config: Config) -> None:
         self.m = Mlx()
         self.mlx = self.m.mlx_init()
 
         self.maze_ui = MazeDisplay(self.m, self.mlx, maze, config)
         self.help_ui = HelpDisplay(self.m, self.mlx, self.maze_ui)
 
-    def run(self):
+    def run(self) -> None:
         self.maze_ui.run()
         self.help_ui.run()
         self.m.mlx_loop(self.mlx)
