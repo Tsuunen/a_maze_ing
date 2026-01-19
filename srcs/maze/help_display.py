@@ -1,9 +1,10 @@
 from .button import Button
 from time import sleep
+from .maze_display import MazeDisplay
 
 
 class HelpDisplay:
-    def __init__(self, m, mlx, display) -> None:
+    def __init__(self, m, mlx, display: MazeDisplay) -> None:
         PAD_X = 30
         GAP_Y = 20
         self.display = display

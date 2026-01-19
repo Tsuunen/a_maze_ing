@@ -1,7 +1,8 @@
 from pydantic import (BaseModel, Field, field_validator,
-                      FieldValidationInfo, ValidationError, model_validator)
+                      ValidationInfo, ValidationError, model_validator)
 from ..parser import Parser
 from typing import Tuple
+from typing_extensions import Self
 
 
 class Maze(BaseModel):
@@ -16,7 +17,7 @@ class Maze(BaseModel):
     @field_validator("entry", "exit", mode="before")
     @classmethod
     def parse_2tuple(cls, raw: str,
-                     info: FieldValidationInfo) -> Tuple[int, int]:
+                     info: ValidationInfo) -> Tuple[int, int]:
         if (isinstance(raw, tuple)):
             return (raw)
         opt = raw.split(",")
@@ -29,7 +30,7 @@ class Maze(BaseModel):
             raise ValueError(f"{info.field_name} must contain integers")
 
     @model_validator(mode="after")
-    def check_valid_coords(self):
+    def check_valid_coords(self) -> Self:
         if (self.entry == self.exit):
             raise ValueError("entry and exit must not overlap")
         if (self.entry[0] < 0 or self.entry[0] >= self.nbr_cols or
@@ -52,7 +53,7 @@ class Maze(BaseModel):
 
 
 class MazeParser(Parser):
-    def extract(self):
+    def extract(self) -> Maze | None:
         nbr_rows = 0
         maze = ""
         is_maze = True
@@ -76,13 +77,15 @@ class MazeParser(Parser):
                 else:
                     path = line
                 count += 1
-
         try:
-            return (Maze(maze=maze,
-                         nbr_cols=nbr_cols,
-                         nbr_rows=nbr_rows,
-                         entry=entry,
-                         exit=exit,
-                         path=path))
+            return Maze.model_validate({
+                "maze": maze,
+                "nbr_cols": nbr_cols,
+                "nbr_rows": nbr_rows,
+                "entry": entry,
+                "exit": exit,
+                "path": path,
+            })
         except ValidationError as e:
             print(self.format_validation_error(e))
+            return None

@@ -1,5 +1,6 @@
 from typing import Tuple
-from pydantic import (BaseModel, Field, field_validator, FieldValidationInfo,
+from typing_extensions import Self
+from pydantic import (BaseModel, Field, field_validator, ValidationInfo,
                       ValidationError, model_validator)
 from ..parser import Parser
 
@@ -17,7 +18,7 @@ class Config(BaseModel):
     @field_validator("entry", "exit", mode="before")
     @classmethod
     def parse_2tuple(cls, raw: str,
-                     info: FieldValidationInfo) -> Tuple[int, int]:
+                     info: ValidationInfo) -> Tuple[int, int]:
         if (isinstance(raw, tuple)):
             return (raw)
         opt = raw.split(",")
@@ -30,7 +31,7 @@ class Config(BaseModel):
             raise ValueError(f"{info.field_name} must contain integers")
 
     @model_validator(mode="after")
-    def check_valid_coords(self):
+    def check_valid_coords(self) -> Self:
         if (self.entry == self.exit):
             raise ValueError("entry and exit must not overlap")
         if (self.entry[0] < 0 or self.entry[0] >= self.width or
@@ -45,7 +46,7 @@ class Config(BaseModel):
 
 
 class ConfigParser(Parser):
-    def extract(self) -> Config:
+    def extract(self) -> Config | None:
         config = {}
         for line in self.iter_lines():
             line = line.strip()
@@ -59,3 +60,4 @@ class ConfigParser(Parser):
             return (Config.model_validate(config))
         except ValidationError as e:
             print(self.format_validation_error(e))
+            return (None)
