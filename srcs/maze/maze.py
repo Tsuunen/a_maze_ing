@@ -8,6 +8,7 @@ from time import sleep
 
 # generer des maze aleatoire et conserver un affichage responsive
 # Exporter la config d'un maze aleatoire
+# Add shape in config
 # zoom dans le maze avec scroll + grab
 
 
@@ -36,7 +37,16 @@ class HelpDisplay:
         self.raw_buts = [
             {
                 "label": "r: Generate a new maze",
-                "action": display.regen_maze
+                "action": lambda: display.regen_maze(display.config)
+            },
+            {
+                "label": "t: Generate a new random maze",
+                "action": lambda: display.regen_maze(
+                    display.gen_random_config())
+            },
+            {
+                "label": "x: export current maze config",
+                "action": display.export_config
             },
             {
                 "label": "p: Toggle path",
@@ -98,13 +108,7 @@ class MazeDisplay:
         self._compute_geometry()
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
-        self.maze = maze.maze
-        self.path = maze.path
-        self.entry = maze.entry
-        self.exit = maze.exit
-        self.cols = maze.nbr_cols
-        self.rows = maze.nbr_rows
-        self.seed = maze.seed
+        self._unpack_maze(maze)
         self._compute_img()
         self.show_path = True
         self.buttons = []
@@ -127,6 +131,16 @@ class MazeDisplay:
                        0xFFFFFFFF]
         self.wall_color = 0xFFFFFFFF
         self.logo_color = 0xFFFFFFFF
+        self.tmp_config = None
+
+    def _unpack_maze(self, maze: Maze):
+        self.maze = maze.maze
+        self.path = maze.path
+        self.entry = maze.entry
+        self.exit = maze.exit
+        self.cols = maze.nbr_cols
+        self.rows = maze.nbr_rows
+        self.seed = maze.seed
 
     def _compute_geometry(self):
         (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
@@ -203,16 +217,51 @@ class MazeDisplay:
         self.draw()
         self.refresh()
 
-    def regen_maze(self):
-        gen = MazeGen(self.config)
+    def regen_maze(self, config: Config):
+        self.tmp_config = config
+        gen = MazeGen(config)
         gen.dfs()
         maze = gen.export_maze_obj()
-        self.maze = maze.maze
-        self.path = maze.path
-        self.seed = maze.seed
-        self.fill_img()
+        self._unpack_maze(maze)
+        self._compute_geometry()
+        self._compute_img()
+        self.m.mlx_clear_window(self.mlx, self.win)
         self.draw()
         self.refresh()
+
+    def gen_random_config(self):
+        self.m.mlx_clear_window(self.mlx, self.win)
+        width = randint(2, 250)
+        height = randint(2, 250)
+        entry = (randint(0, width - 1), randint(0, height - 1))
+        exit = (randint(0, width - 1), randint(0, height - 1))
+        return (Config(
+            width=width,
+            height=height,
+            entry=entry,
+            exit=exit,
+            output_file="maze.txt",
+            perfect=choice([True, False]),
+            shape=choice(["rectangle", "square", "circle",
+                         "donut", "diamond", "elipse"])
+        ))
+
+    def export_config(self):
+        if self.tmp_config is None:
+            conf = self.config
+        else:
+            conf = self.tmp_config
+        with open("config.txt", "w") as file:
+            file.write(f"WIDTH={conf.width}\n")
+            file.write(f"HEIGHT={conf.height}\n")
+            file.write(f"ENTRY={conf.entry[0]}, {conf.entry[1]}\n")
+            file.write(f"EXIT={conf.exit[0]}, {conf.exit[1]}\n")
+            file.write(f"OUTPUT_FILE={conf.output_file}\n")
+            file.write(f"PERFECT={conf.perfect}\n")
+            if (conf.seed):
+                file.write(f"SEED={conf.seed}\n")
+            if (conf.shape):
+                file.write(f"SHAPE={conf.shape}\n")
 
     def fill_img(self, color: int = 0x000000FF):
         px = bytes((

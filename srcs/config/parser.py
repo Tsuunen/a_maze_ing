@@ -12,6 +12,7 @@ class Config(BaseModel):
     output_file: str = Field()
     perfect: bool = Field()
     seed: int | None = Field(default=None)
+    shape: str = Field(default="rectangle")
 
     @field_validator("entry", "exit", mode="before")
     @classmethod
@@ -37,6 +38,9 @@ class Config(BaseModel):
             self.exit[0] < 0 or self.exit[0] >= self.width or
                 self.exit[1] < 0 or self.exit[1] >= self.height):
             raise ValueError("coords are out of bound")
+        if (self.shape not in ["rectangle", "square", "circle", "donut",
+                               "diamond", "elipse"]):
+            raise ValueError("Shape not known")
         return (self)
 
 
