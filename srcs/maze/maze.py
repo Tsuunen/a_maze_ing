@@ -6,9 +6,6 @@ from random import randint, choice
 from math import ceil
 from time import sleep
 
-# generer des maze aleatoire et conserver un affichage responsive
-# Exporter la config d'un maze aleatoire
-# Add shape in config
 # zoom dans le maze avec scroll + grab
 
 
@@ -32,6 +29,7 @@ class HelpDisplay:
     def __init__(self, m, mlx, display) -> None:
         PAD_X = 30
         GAP_Y = 20
+        self.display = display
         self.m = m
         self.mlx = mlx
         self.raw_buts = [
@@ -83,6 +81,7 @@ class HelpDisplay:
         self.m.mlx_hook(self.win, 33, 0,
                         lambda _: self.m.mlx_loop_exit(self.mlx), None)
         self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
+        self.m.mlx_key_hook(self.win, self.key_pressed, None)
         self.m.mlx_string_put(self.mlx, self.win, 10, 10,
                               0xFFFFFFFF, "Help window")
         for i in self.buttons:
@@ -96,6 +95,29 @@ class HelpDisplay:
                 if (i.contains(x, y)):
                     i.action()
                     return
+
+    def key_pressed(self, keycode: int, _):
+        if (keycode == 113):  # 'q'
+            self.m.mlx_loop_exit(self.mlx)
+        elif (keycode == 112):  # 'p'
+            self.display.toggle_path()
+        elif (keycode == 114):  # 'r'
+            self.display.regen_maze(self.display.config)
+        elif (keycode == 119):  # 'w'
+            self.display.change_wall_color()
+        elif (keycode == 108):  # 'l'
+            self.display.change_logo_color()
+        elif (keycode == 116):  # 't'
+            self.display.regen_maze(self.display.gen_random_config())
+        elif (keycode == 120):  # 'x'
+            self.display.export_config()
+        elif (keycode == 61):  # '='
+            self.display.ratio += 1/10
+            self.display.recreate_win()
+        elif (keycode == 45):  # '-'
+            if (self.display.ratio > 0.4):
+                self.display.ratio -= 1/10
+                self.display.recreate_win()
 
 
 class MazeDisplay:
@@ -186,11 +208,15 @@ class MazeDisplay:
         elif (keycode == 112):  # 'p'
             self.toggle_path()
         elif (keycode == 114):  # 'r'
-            self.regen_maze()
+            self.regen_maze(self.config)
         elif (keycode == 119):  # 'w'
             self.change_wall_color()
         elif (keycode == 108):  # 'l'
             self.change_logo_color()
+        elif (keycode == 116):  # 't'
+            self.regen_maze(self.gen_random_config())
+        elif (keycode == 120):  # 'x'
+            self.export_config()
         elif (keycode == 61):  # '='
             self.ratio += 1/10
             self.recreate_win()
@@ -251,17 +277,21 @@ class MazeDisplay:
             conf = self.config
         else:
             conf = self.tmp_config
-        with open("config.txt", "w") as file:
-            file.write(f"WIDTH={conf.width}\n")
-            file.write(f"HEIGHT={conf.height}\n")
-            file.write(f"ENTRY={conf.entry[0]}, {conf.entry[1]}\n")
-            file.write(f"EXIT={conf.exit[0]}, {conf.exit[1]}\n")
-            file.write(f"OUTPUT_FILE={conf.output_file}\n")
-            file.write(f"PERFECT={conf.perfect}\n")
-            if (conf.seed):
-                file.write(f"SEED={conf.seed}\n")
-            if (conf.shape):
-                file.write(f"SHAPE={conf.shape}\n")
+        try:
+            with open("config.txt", "w") as file:
+                file.write(f"WIDTH={conf.width}\n")
+                file.write(f"HEIGHT={conf.height}\n")
+                file.write(f"ENTRY={conf.entry[0]}, {conf.entry[1]}\n")
+                file.write(f"EXIT={conf.exit[0]}, {conf.exit[1]}\n")
+                file.write(f"OUTPUT_FILE={conf.output_file}\n")
+                file.write(f"PERFECT={conf.perfect}\n")
+                if (conf.seed):
+                    file.write(f"SEED={conf.seed}\n")
+                if (conf.shape):
+                    file.write(f"SHAPE={conf.shape}\n")
+            print("Success: Configuration file successfully exported")
+        except Exception:
+            print("Error: Configuration file failed to export")
 
     def fill_img(self, color: int = 0x000000FF):
         px = bytes((
