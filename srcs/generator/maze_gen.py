@@ -18,7 +18,7 @@ class MazeGen:
             self.seed = random.randint(0, 2**32 - 1)
         random.seed(self.seed)
         self.visited: list[list[int]]
-        self.shape = "donut"
+        self.shape = "square"
         self.lst_repr = [[15 for i in range(self.width)]
                          for j in range(self.height)]
 
@@ -94,6 +94,12 @@ exit has been moved")
         if self.entry == self.exit:
             self.disalign()
 
+    def project_in_square(self, size) -> None:
+        self.entry = (min(self.entry[0], size - 1), min(self.entry[1], size - 1))
+        self.exit = (min(self.exit[0], size - 1), min(self.exit[1], size - 1))
+        print("entry or exit was outside the maze square, they have been moved\
+ in")
+
     def shape_stamp(self) -> None:
         """
         makes the maze looks lkie certain shape:
@@ -113,9 +119,8 @@ exit has been moved")
             size: int = min(self.height, self.width)
             if self.entry[0] > size or self.entry[1] > size or \
                self.exit[0] > size or self.exit[1] > size:
-                print("Error: cannot generate this maze shape(entry or \
-exit outside the shape)")
-                return
+                self.project_in_square(size)
+
             self.width, self.height = size, size
             self.lst_repr = [[15 for i in range(self.width)]
                              for j in range(self.height)]
@@ -160,10 +165,6 @@ exit outside the shape)")
                        (line - center[1]) ** 2 / center[1] ** 2 > 1:
                         self.lst_repr[line][col] = -1
                         self.visited[line][col] = -1
-            for i in self.visited:
-                for j in i:
-                    print(j if j == 0 else 1, end="")
-                print("\n")
             self.project_in()
 
     def ft_stamp(self, error: bool) -> None:
