@@ -18,7 +18,7 @@ class MazeGen:
             self.seed = random.randint(0, 2**32 - 1)
         random.seed(self.seed)
         self.visited: list[list[int]]
-        self.shape = "diamond"
+        self.shape = "ellipse"
         self.lst_repr = [[15 for i in range(self.width)]
                          for j in range(self.height)]
 
@@ -80,6 +80,20 @@ exit outside the shape)")
                     if AStar.dist(center, (col, line)) > size // 2:
                         self.lst_repr[line][col] = -1
                         self.visited[line][col] = -1
+            self.project_in()
+
+        if self.shape == "ellipse":
+            center: tuple[int, int] = (self.width // 2, self.height // 2)
+            for line in range(self.height):
+                for col in range(self.width):
+                    if (col - center[0]) ** 2 / center[0] ** 2 + \
+                       (line - center[1]) ** 2 / center[1] ** 2 > 1:
+                        self.lst_repr[line][col] = -1
+                        self.visited[line][col] = -1
+            for i in self.visited:
+                for j in i:
+                    print(j if j == 0 else 1, end="")
+                print("\n")
             self.project_in()
 
     def ft_stamp(self, error: bool) -> None:
