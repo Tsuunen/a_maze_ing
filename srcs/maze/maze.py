@@ -4,12 +4,11 @@ from ..generator.maze_gen import MazeGen
 from ..config.parser import Config
 from random import randint, choice
 from math import ceil
+from time import sleep
 
 # generer des maze aleatoire et conserver un affichage responsive
 # Exporter la config d'un maze aleatoire
-# Permettre d'afficher du texte dans une image
-# zoom dans le maze avec scroll
-# Mettre les boutons dans une nouvelles petite fenetre
+# zoom dans le maze avec scroll + grab
 
 
 class Button:
@@ -28,13 +27,74 @@ class Button:
         )
 
 
+class HelpDisplay:
+    def __init__(self, m, mlx, display) -> None:
+        PAD_X = 30
+        GAP_Y = 20
+        self.m = m
+        self.mlx = mlx
+        self.raw_buts = [
+            {
+                "label": "r: Generate a new maze",
+                "action": display.regen_maze
+            },
+            {
+                "label": "p: Toggle path",
+                "action": display.toggle_path
+            },
+            {
+                "label": "w: Change wall color",
+                "action": display.change_wall_color
+            },
+            {
+                "label": "l: Change 42 color",
+                "action": display.change_logo_color
+            },
+            {
+                "label": "q: Quit",
+                "action": lambda: display.m.mlx_loop_exit(self.mlx)
+            }
+        ]
+        self.buttons = []
+        tmp = GAP_Y
+        for button in self.raw_buts:
+            but = Button(PAD_X, tmp + GAP_Y,
+                         button["action"], button["label"])
+            tmp += but.h + GAP_Y
+            self.buttons.append(but)
+        self.win = self.m.mlx_new_window(self.mlx,
+                                         max(b.w for b in self.buttons) +
+                                         PAD_X * 2, GAP_Y + len(self.buttons) *
+                                         20 + (len(self.buttons) - 1) *
+                                         GAP_Y + GAP_Y * 2,
+                                         "Help - relaforg & nahecre")
+
+    def run(self):
+        self.m.mlx_hook(self.win, 33, 0,
+                        lambda _: self.m.mlx_loop_exit(self.mlx), None)
+        self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
+        self.m.mlx_string_put(self.mlx, self.win, 10, 10,
+                              0xFFFFFFFF, "Help window")
+        for i in self.buttons:
+            sleep(0.001)
+            self.m.mlx_string_put(self.mlx, self.win, i.x,
+                                  i.y, 0xFFFFFFFF, i.label)
+
+    def on_mouse(self, button, x, y, _):
+        if (button == 1):
+            for i in self.buttons:
+                if (i.contains(x, y)):
+                    i.action()
+                    return
+
+
 class MazeDisplay:
-    def __init__(self, maze: Maze, config: Config):
+    def __init__(self, m, mlx, maze: Maze, config: Config):
         self.config = config
         # self.ratio = 8/10
         self.ratio = 3/10
-        self.m = Mlx()
-        self.mlx = self.m.mlx_init()
+        self.m = m
+        self.mlx = mlx
         self._compute_geometry()
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
@@ -63,43 +123,16 @@ class MazeDisplay:
                        0xE74C3CFF,
                        0xECF0F1FF,
                        0x95A5A6FF,
-                       0x7F8C8DFF,]
+                       0x7F8C8DFF,
+                       0xFFFFFFFF]
         self.wall_color = 0xFFFFFFFF
         self.logo_color = 0xFFFFFFFF
-        self.raw_buts = [
-            {
-                "label": "r: New maze",
-                "action": self.regen_maze
-            },
-            {
-                "label": "p: Toggle path",
-                "action": self.toggle_path
-            },
-            {
-                "label": "w: Change wall color",
-                "action": self.change_wall_color
-            },
-            {
-                "label": "l: Change 42 color",
-                "action": self.change_logo_color
-            },
-            {
-                "label": "q: Quit",
-                "action": lambda: self.m.mlx_loop_exit(self.mlx)
-            }
-        ]
-        tmp = 0
-        for button in self.raw_buts:
-            but = Button(15 + tmp, self.win_height - 40,
-                         button["action"], button["label"])
-            tmp += but.w + 40
-            self.buttons.append(but)
 
     def _compute_geometry(self):
         (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
         self.width = ceil(w * self.ratio)
         self.win_height = ceil(h * self.ratio)
-        self.height = self.win_height - 100
+        self.height = self.win_height - 50
 
     def _compute_img(self):
         self.cell_size = min(self.width // self.cols,
@@ -111,20 +144,12 @@ class MazeDisplay:
         self.addr, bpp, self.line_len, _ = self.m.mlx_get_data_addr(self.img)
         self.bpp = bpp // 8
 
-    def init(self):
+    def run(self):
         self.m.mlx_key_hook(self.win, self.key_pressed, None)
-        self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
         self.m.mlx_hook(self.win, 33, 0,
                         lambda _: self.m.mlx_loop_exit(self.mlx), None)
-        for i in self.buttons:
-            self.m.mlx_string_put(self.mlx, self.win, i.x,
-                                  i.y, 0xFFFFFFFF, i.label)
         self.draw()
         self.refresh()
-
-    def run(self):
-        self.init()
-        self.m.mlx_loop(self.mlx)
 
     def refresh(self, full=True):
         self.m.mlx_put_image_to_window(self.mlx, self.win, self.img,
@@ -140,13 +165,6 @@ class MazeDisplay:
             self.m.mlx_put_image_to_window(self.mlx, self.win, eraser, 0, 10)
             self.m.mlx_string_put(self.mlx, self.win, 15, 10, 0xFFFFFFFF,
                                   f"A Maze Ing - seed = {self.seed}")
-
-    def on_mouse(self, button, x, y, _):
-        if (button == 1):
-            for i in self.buttons:
-                if (i.contains(x, y)):
-                    i.action()
-                    return
 
     def key_pressed(self, keycode: int, _):
         if (keycode == 113):  # 'q'
@@ -172,15 +190,8 @@ class MazeDisplay:
         self._compute_geometry()
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
-        tmp = 0
-        self.buttons = []
-        for button in self.raw_buts:
-            but = Button(15 + tmp, self.win_height - 40,
-                         button["action"], button["label"])
-            tmp += but.w + 40
-            self.buttons.append(but)
         self._compute_img()
-        self.init()
+        self.run()
 
     def change_wall_color(self):
         self.wall_color = choice(self.colors)
@@ -221,6 +232,7 @@ class MazeDisplay:
         self.refresh(False)
 
     def draw(self):
+        self.fill_img()
         x, y = 0, 0
         for line in self.maze.split("\n"):
             for c in line:
@@ -351,3 +363,17 @@ class MazeDisplay:
         self.addr[offset + 1] = (color >> 16) & 0xFF
         self.addr[offset + 2] = (color >> 24) & 0xFF
         self.addr[offset + 3] = color & 0xFF
+
+
+class App:
+    def __init__(self, maze: Maze, config: Config):
+        self.m = Mlx()
+        self.mlx = self.m.mlx_init()
+
+        self.maze_ui = MazeDisplay(self.m, self.mlx, maze, config)
+        self.help_ui = HelpDisplay(self.m, self.mlx, self.maze_ui)
+
+    def run(self):
+        self.maze_ui.run()
+        self.help_ui.run()
+        self.m.mlx_loop(self.mlx)

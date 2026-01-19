@@ -1,5 +1,5 @@
 from srcs.config.parser import ConfigParser
-from srcs.maze.maze import MazeDisplay
+from srcs.maze.maze import App
 from srcs.generator.maze_gen import MazeGen
 from sys import argv
 
@@ -14,7 +14,7 @@ if (__name__ == "__main__"):
         maze = MazeGen(config)
         maze.dfs()
         maze.export_maze_file()
-        m = MazeDisplay(maze.export_maze_obj(), config)
+        m = App(maze.export_maze_obj(), config)
         m.run()
     except Exception as e:
         print(e)
