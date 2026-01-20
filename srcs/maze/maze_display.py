@@ -5,7 +5,6 @@ from .parser import Maze
 from ..config.parser import Config
 from mlx import Mlx
 from typing import Any, Tuple
-import time
 
 
 class MazeDisplay:
@@ -44,8 +43,6 @@ class MazeDisplay:
         self.tmp_config: Config | None = None
         self.drag_start: Tuple[int, int] | None = None
         self.offset: Tuple[int, int] = (0, 0)
-        self.is_draging: bool = False
-        self._last_move_t = time.monotonic()
 
     def _unpack_maze(self, maze: Maze) -> None:
         self.maze = maze.maze
@@ -76,7 +73,6 @@ class MazeDisplay:
         self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
         self.m.mlx_key_hook(self.win, self.key_pressed, None)
         self.m.mlx_hook(self.win, 5, 1 << 3, self.on_mouse_release, None)
-        self.m.mlx_hook(self.win, 6, 1 << 6, self.on_mouse_motion, None)
         self.m.mlx_hook(self.win, 33, 0,
                         lambda _: self.m.mlx_loop_exit(self.mlx), None)
         self.draw()
@@ -92,21 +88,12 @@ class MazeDisplay:
         self.m.mlx_string_put(self.mlx, self.win, 15, 10, 0xFFFFFFFF,
                               f"A Maze Ing - seed = {self.seed}")
 
-    def on_mouse_motion(self, x: int, y: int, _: Any) -> None:
-        if (self.is_draging):
-            now = time.monotonic()
-            if (now - self._last_move_t < 1/2):  # 2Hz
-                return
-            self._last_move_t = now
-            self.offset = (self.offset[0] + x - self.drag_start[0],
-                           self.offset[1] + y - self.drag_start[1])
-            self.drag_start = (x, y)
-            self.refresh()
-
     def on_mouse_release(self, button: int, x: int, y: int, _: Any) -> None:
         if (self.drag_start and button == 1):
+            self.offset = (self.offset[0] + x - self.drag_start[0],
+                           self.offset[1] + y - self.drag_start[1])
+            self.refresh()
             self.drag_start = None
-            self.is_draging = False
 
     def on_mouse(self, button: int, x: int, y: int, _: Any) -> None:
         change = False
