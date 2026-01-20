@@ -2,6 +2,8 @@ from typing import Callable, Any
 
 
 class Button:
+    """Button class"""
+
     def __init__(self, x: int, y: int, action: Callable[[], Any],
                  label: str) -> None:
         self.x = x

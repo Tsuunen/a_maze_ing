@@ -6,11 +6,21 @@ from typing import Any, TypedDict, Callable
 
 
 class RawButton(TypedDict):
+    """Type class for raw buttons
+    """
     label: str
     action: Callable[[], Any]
 
 
 class HelpDisplay:
+    """Help display class
+
+    Args:
+    m: mlx instance
+    mlx: mlx pointer
+    display: the linked MazeDisplay instance
+    """
+
     def __init__(self, m: Mlx, mlx: Any, display: MazeDisplay) -> None:
         PAD_X = 30
         GAP_Y = 20
@@ -67,6 +77,8 @@ class HelpDisplay:
                                          "Help - relaforg & nahecre")
 
     def run(self) -> None:
+        """Setup the help window
+        """
         self.m.mlx_hook(self.win, 33, 0,
                         lambda _: self.m.mlx_loop_exit(self.mlx), None)
         self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
@@ -79,6 +91,12 @@ class HelpDisplay:
                                   i.y, 0xFFFFFFFF, i.label)
 
     def on_mouse(self, button: int, x: int, y: int, _: Any) -> None:
+        """Mouse click handler
+
+        Args:
+        button: which button is clicked
+        x, y: click coordinates
+        """
         if (button == 1):
             for i in self.buttons:
                 if (i.contains(x, y)):
@@ -86,6 +104,11 @@ class HelpDisplay:
                     return
 
     def key_pressed(self, keycode: int, _: Any) -> None:
+        """Key press handler
+
+        Args:
+        keycode: which key has been pressed
+        """
         if (keycode == 113):  # 'q'
             self.m.mlx_loop_exit(self.mlx)
         elif (keycode == 112):  # 'p'
