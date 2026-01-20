@@ -3,7 +3,7 @@ from ..generator.maze_gen import MazeGen
 from math import ceil
 from .parser import Maze
 from ..config.parser import Config
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped]
 from typing import Any, Tuple
 
 

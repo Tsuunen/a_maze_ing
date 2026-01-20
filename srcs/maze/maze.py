@@ -1,4 +1,4 @@
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped]
 from .parser import Maze
 from ..config.parser import Config
 from .help_display import HelpDisplay

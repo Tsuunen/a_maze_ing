@@ -1,7 +1,7 @@
 from .button import Button
 from time import sleep
 from .maze_display import MazeDisplay
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped]
 from typing import Any, TypedDict, Callable
 
 
