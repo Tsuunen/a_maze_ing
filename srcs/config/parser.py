@@ -71,6 +71,11 @@ class Config(BaseModel):
         if (self.shape not in ["rectangle", "square", "circle", "donut",
                                "diamond", "ellipse"]):
             raise ValueError("Shape not known")
+        if (self.shape in ["square", "circle", "donut", "diamond"]
+                and min(self.width, self.height) <= 1):
+            raise ValueError("The shape selected will shrink the size and will"
+                             "endup in entry and exit overlaping. You may want"
+                             "to increase the maze size")
         return (self)
 
 
