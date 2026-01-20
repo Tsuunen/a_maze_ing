@@ -101,7 +101,7 @@ class HelpDisplay:
         elif (keycode == 120):  # 'x'
             self.display.export_config()
         elif (keycode == 111):  # 'o'
-            self.reset_maze()
+            self.display.reset_maze()
         elif (keycode == 61):  # '='
             self.display.ratio += 1/10
             self.display.recreate_win()

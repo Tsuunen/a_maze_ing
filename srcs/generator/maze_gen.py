@@ -237,7 +237,7 @@ exit has been moved")
             repr += " "
         return repr
 
-    def export_maze_file(self):
+    def export_maze_file(self) -> None:
         """
         export the list representation of the maze in a .txt file
         """

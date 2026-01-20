@@ -146,7 +146,7 @@ class MazeDisplay:
         self._compute_img()
         self.run()
 
-    def reset_maze(self):
+    def reset_maze(self) -> None:
         self.offset = (0, 0)
         self.zoom = 1
         self._compute_img()
