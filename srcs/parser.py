@@ -5,6 +5,8 @@ from pydantic import ValidationError
 
 
 class Parser:
+    """Base parser class"""
+
     def __init__(self, file_path: str) -> None:
         if Path(file_path).is_file() and os.access(file_path, os.R_OK):
             self.file_path = file_path

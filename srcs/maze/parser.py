@@ -6,6 +6,7 @@ from typing_extensions import Self
 
 
 class Maze(BaseModel):
+    """Maze object"""
     maze: str = Field()
     entry: Tuple[int, int] = Field(min_length=2, max_length=2)
     exit: Tuple[int, int] = Field(min_length=2, max_length=2)
@@ -18,8 +19,27 @@ class Maze(BaseModel):
     @classmethod
     def parse_2tuple(cls, raw: str,
                      info: ValidationInfo) -> Tuple[int, int]:
+        """Parse entry and exit fields before pydantic validation
+
+        Args:
+        cls: The Config class itself
+        raw: The raw entry or exit value
+        info: Field information
+
+        Returns:
+        The right couple of coordinates
+
+        Raises:
+        A descriptive ValueError
+        """
         if (isinstance(raw, tuple)):
-            return (raw)
+            if (len(raw) != 2):
+                raise ValueError(
+                    f"{info.field_name} is not a valid coord input")
+            try:
+                return (int(raw[0]), int(raw[1]))
+            except ValueError:
+                raise ValueError("The tuple must contain int values")
         opt = raw.split(",")
         opt = [o.strip() for o in opt]
         if (len(opt) != 2):
@@ -31,6 +51,14 @@ class Maze(BaseModel):
 
     @model_validator(mode="after")
     def check_valid_coords(self) -> Self:
+        """Check after the Pydantic validation if the info are coherent
+
+        Returns:
+        The instance itself
+
+        Raises:
+        A descriptive ValueError
+        """
         if (self.entry == self.exit):
             raise ValueError("entry and exit must not overlap")
         if (self.entry[0] < 0 or self.entry[0] >= self.nbr_cols or
@@ -53,7 +81,21 @@ class Maze(BaseModel):
 
 
 class MazeParser(Parser):
+    """Class to parse a maze file
+
+    Args:
+    file_path: The path of the config file
+    """
+
     def extract(self) -> Maze | None:
+        """Extract the maze from the maze file
+
+        Returns:
+        A Maze object filled
+
+        Raises:
+        A formatted error message
+        """
         nbr_rows = 0
         maze = ""
         is_maze = True

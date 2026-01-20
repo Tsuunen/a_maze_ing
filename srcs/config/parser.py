@@ -6,6 +6,7 @@ from ..parser import Parser
 
 
 class Config(BaseModel):
+    """Config object"""
     width: int = Field(gt=0)
     height: int = Field(gt=0)
     entry: Tuple[int, int] = Field(min_length=2, max_length=2)
@@ -19,8 +20,28 @@ class Config(BaseModel):
     @classmethod
     def parse_2tuple(cls, raw: str,
                      info: ValidationInfo) -> Tuple[int, int]:
+        """Parse entry and exit fields before pydantic validation
+
+        Args:
+        cls: The Config class itself
+        raw: The raw entry or exit value
+        info: Field information
+
+        Returns:
+        The right couple of coordinates
+
+        Raises:
+        A descriptive ValueError
+        """
         if (isinstance(raw, tuple)):
-            return (raw)
+
+            if (len(raw) != 2):
+                raise ValueError(
+                    f"{info.field_name} is not a valid coord input")
+            try:
+                return (int(raw[0]), int(raw[1]))
+            except ValueError:
+                raise ValueError("The tuple must contain int values")
         opt = raw.split(",")
         opt = [o.strip() for o in opt]
         if (len(opt) != 2):
@@ -32,6 +53,14 @@ class Config(BaseModel):
 
     @model_validator(mode="after")
     def check_valid_coords(self) -> Self:
+        """Check after the Pydantic validation if the info are coherent
+
+        Returns:
+        The instance itself
+
+        Raises:
+        A descriptive ValueError
+        """
         if (self.entry == self.exit):
             raise ValueError("entry and exit must not overlap")
         if (self.entry[0] < 0 or self.entry[0] >= self.width or
@@ -46,7 +75,21 @@ class Config(BaseModel):
 
 
 class ConfigParser(Parser):
+    """Class to parse a config file
+
+    Args:
+    file_path: The path of the config file
+    """
+
     def extract(self) -> Config | None:
+        """Extract the config from the config file
+
+        Returns:
+        A Config object filled
+
+        Raises:
+        A formatted error message
+        """
         config = {}
         for line in self.iter_lines():
             line = line.strip()
