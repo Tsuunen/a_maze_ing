@@ -40,7 +40,7 @@ class Config(BaseModel):
                 self.exit[1] < 0 or self.exit[1] >= self.height):
             raise ValueError("coords are out of bound")
         if (self.shape not in ["rectangle", "square", "circle", "donut",
-                               "diamond", "elipse"]):
+                               "diamond", "ellipse"]):
             raise ValueError("Shape not known")
         return (self)
 
