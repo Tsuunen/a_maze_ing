@@ -35,7 +35,7 @@ make run
 | `SEED` | Optional | int | `3377218501` | The seed used by random |
 | `SHAPE` | Optional | str | `donut` | Maze shape (`rectangle`, `square`, `circle`, `donut`, `diamond`, `ellipse`). |
 
-## Exemple complet
+## Example
 
 ```ini
 # Mandatory
@@ -51,8 +51,20 @@ SEED=3377218501
 SHAPE=donut
 ```
 
-## Remarques
+## Remarks
 
 - If `SEED` is not given, a random one will get used.
 - If `SHAPE` is not given, the default shape is `rectangle`.
 - The `ENTRY` and `EXIT` coordinates must be inside the maze and must not be the same.
+
+# Maze generation
+## Maze algorithm
+ICI LEQUEL ET POURQUOI ET CE QUI EST REUTILISABLE ET COMMENT
+
+# Team and Management
+## Team
+- Rémi LAFORGUE (relaforg): Data Analyst and Data Visualizer
+- Nathan HECRE (nahecre): Computer whisperer
+
+We worked in parallel, discussing implementations and features every days
+
