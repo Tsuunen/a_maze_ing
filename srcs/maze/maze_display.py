@@ -19,6 +19,7 @@ class MazeDisplay:
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
                                          "A Maze Ing - relaforg & nahecre")
         self._unpack_maze(maze)
+        self.img: Any
         self._compute_img()
         self.show_path = True
         self.colors = [0x1ABC9CFF,
