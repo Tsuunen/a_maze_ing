@@ -8,6 +8,15 @@ from typing import Any, Tuple
 
 
 class MazeDisplay:
+    """ Maze display class
+
+    Args:
+    m: Mlx instance
+    mlx: mlx pointer
+    maze: Tha maze obj to display
+    config: The config associated to the maze
+    """
+
     def __init__(self, m: Mlx, mlx: Any, maze: Maze, config: Config) -> None:
         self.config = config
         # self.ratio = 8/10
@@ -46,6 +55,11 @@ class MazeDisplay:
         self.offset: Tuple[int, int] = (0, 0)
 
     def _unpack_maze(self, maze: Maze) -> None:
+        """Unpack all maze attributes
+
+        Args:
+        maze: The maze to be unpacked
+        """
         self.maze = maze.maze
         self.path = maze.path
         self.entry = maze.entry
@@ -55,12 +69,16 @@ class MazeDisplay:
         self.seed = maze.seed
 
     def _compute_geometry(self) -> None:
+        """Compute window size
+        """
         (_, w, h) = self.m.mlx_get_screen_size(self.mlx)
         self.width = ceil(w * self.ratio)
         self.win_height = ceil(h * self.ratio)
         self.height = self.win_height - 50
 
     def _compute_img(self) -> None:
+        """Compute img size and attributes
+        """
         try:
             if (self.img):
                 self.m.mlx_destroy_image(self.mlx, self.img)
@@ -76,6 +94,8 @@ class MazeDisplay:
         self.bpp = bpp // 8
 
     def run(self) -> None:
+        """Setup the window
+        """
         self.m.mlx_mouse_hook(self.win, self.on_mouse, None)
         self.m.mlx_key_hook(self.win, self.key_pressed, None)
         self.m.mlx_hook(self.win, 5, 1 << 3, self.on_mouse_release, None)
@@ -85,6 +105,8 @@ class MazeDisplay:
         self.refresh()
 
     def refresh(self) -> None:
+        """Refresh the window to display modification
+        """
         x: int = (self.width - self.cols *
                   self.cell_size) // 2 + self.offset[0]
         y: int = (self.height - self.rows *
@@ -95,6 +117,12 @@ class MazeDisplay:
                               f"A Maze Ing - seed = {self.seed}")
 
     def on_mouse_release(self, button: int, x: int, y: int, _: Any) -> None:
+        """Mouse click release handler
+
+        Args:
+        button: which button is released
+        x, y: release coordinates
+        """
         if (self.drag_start and button == 1):
             self.offset = (self.offset[0] + x - self.drag_start[0],
                            self.offset[1] + y - self.drag_start[1])
@@ -102,6 +130,12 @@ class MazeDisplay:
             self.drag_start = None
 
     def on_mouse(self, button: int, x: int, y: int, _: Any) -> None:
+        """Mouse click handler
+
+        Args:
+        button: which button is clicked
+        x, y: click coordinates
+        """
         change = False
         if (button == 1):
             self.drag_start = (x, y)
@@ -120,6 +154,11 @@ class MazeDisplay:
             self.refresh()
 
     def key_pressed(self, keycode: int, _: Any) -> None:
+        """Key press handler
+
+        Args:
+        keycode: which key has been pressed
+        """
         if (keycode == 113):  # 'q'
             self.m.mlx_loop_exit(self.mlx)
         elif (keycode == 112):  # 'p'
@@ -145,6 +184,8 @@ class MazeDisplay:
                 self.recreate_win()
 
     def recreate_win(self) -> None:
+        """Recreate a new window
+        """
         self.m.mlx_destroy_window(self.mlx, self.win)
         self._compute_geometry()
         self.win = self.m.mlx_new_window(self.mlx, self.width, self.win_height,
@@ -153,6 +194,8 @@ class MazeDisplay:
         self.run()
 
     def reset_maze(self) -> None:
+        """Reset maze offset and zoom
+        """
         self.offset = (0, 0)
         self.zoom = 1
         self._compute_img()
@@ -160,16 +203,25 @@ class MazeDisplay:
         self.refresh()
 
     def change_wall_color(self) -> None:
+        """Change the color of the maze's walls
+        """
         self.wall_color = choice(self.colors)
         self.draw()
         self.refresh()
 
     def change_logo_color(self) -> None:
+        """Change the filled cells color
+        """
         self.logo_color = choice(self.colors)
         self.draw()
         self.refresh()
 
     def regen_maze(self, config: Config) -> None:
+        """Generate a new maze
+
+        Args:
+        config: The config with which the new maze will be based of
+        """
         self.tmp_config = config
         gen = MazeGen(config)
         gen.dfs()
@@ -183,6 +235,11 @@ class MazeDisplay:
         self.refresh()
 
     def gen_random_config(self) -> Config:
+        """Generate a random new config
+
+        Returns:
+        The new random Config
+        """
         self.m.mlx_clear_window(self.mlx, self.win)
         width = randint(2, 250)
         height = randint(2, 250)
@@ -200,6 +257,8 @@ class MazeDisplay:
         ))
 
     def export_config(self) -> None:
+        """Write in a file the latest config used
+        """
         if self.tmp_config is None:
             conf = self.config
         else:
@@ -223,6 +282,11 @@ class MazeDisplay:
             print("Error: Configuration file failed to export")
 
     def fill_img(self, color: int = 0x000000FF) -> None:
+        """Fill an mlx image with color
+
+        Args:
+        color: The color with which the img will be filled
+        """
         px = bytes((
             (color >> 8) & 0xFF,
             (color >> 16) & 0xFF,
@@ -232,6 +296,8 @@ class MazeDisplay:
         self.addr[:] = px * (self.img_width * self.img_height)
 
     def toggle_path(self) -> None:
+        """Toggle on and off the path
+        """
         if (self.show_path):
             self.fill_path(0x000000FF)
         else:
@@ -240,6 +306,8 @@ class MazeDisplay:
         self.refresh()
 
     def draw(self) -> None:
+        """Draw the maze on the image
+        """
         self.fill_img()
         x, y = 0, 0
         for line in self.maze.split("\n"):
@@ -249,6 +317,7 @@ class MazeDisplay:
                 x += 1
             x = 0
             y += 1
+
             self.fill_cell(self.entry[0] * self.cell_size, self.entry[1]
                            * self.cell_size, 0x00FF00FF)
             self.fill_cell(self.exit[0] * self.cell_size, self.exit[1]
@@ -257,6 +326,8 @@ class MazeDisplay:
             self.fill_path()
 
     def _connect_south(self, x: int, y: int, color: int) -> None:
+        """Connect path
+        """
         if (self.cell_size == 2):
             self.put_pixel(x * self.cell_size + 1,
                            y * self.cell_size + 2, color)
@@ -270,6 +341,8 @@ class MazeDisplay:
                               self.cell_size - 3, color)
 
     def _connect_north(self, x: int, y: int, color: int) -> None:
+        """Connect path
+        """
         if (self.cell_size == 2):
             self.put_pixel(x * self.cell_size + 1,
                            y * self.cell_size, color)
@@ -283,6 +356,8 @@ class MazeDisplay:
                               self.cell_size - 3, color)
 
     def _connect_west(self, x: int, y: int, color: int) -> None:
+        """Connect path
+        """
         if (self.cell_size == 2):
             self.put_pixel(x * self.cell_size,
                            y * self.cell_size + 1, color)
@@ -296,6 +371,8 @@ class MazeDisplay:
                              color)
 
     def _connect_east(self, x: int, y: int, color: int) -> None:
+        """Connect path
+        """
         if (self.cell_size == 2):
             self.put_pixel(x * self.cell_size + 2,
                            y * self.cell_size + 1, color)
@@ -309,6 +386,8 @@ class MazeDisplay:
                              self.cell_size - 3, color)
 
     def fill_path(self, color: int = 0xC0C0C0FF) -> None:
+        """Draw the path
+        """
         x, y = self.entry[0], self.entry[1]
         for j in range(len(self.path)):
             if (self.path[j] == "S"):
@@ -327,6 +406,12 @@ class MazeDisplay:
                 self.fill_cell(x * self.cell_size, y * self.cell_size, color)
 
     def put_cell(self, s: str, cell_x: int, cell_y: int) -> None:
+        """Draw cell wall on image
+
+        Args:
+        s: Hexadecimal int
+        cell_x, cell_y: Cell coordinates
+        """
         c = int(s, 16)
         if (c & 1):
             self.put_line(cell_x, cell_y, self.cell_size, self.wall_color)
@@ -343,16 +428,36 @@ class MazeDisplay:
 
     def put_line(self, x: int, y: int, size: int,
                  color: int = 0xFFFFFFFF) -> None:
+        """Draw a line on the image
+
+        Args:
+        x, y: Start coordinates
+        size: Size of the line in pixel
+        color: The color of the line
+        """
         for i in range(size):
             self.put_pixel(x + i, y, color)
 
     def put_col(self, x: int, y: int, size: int,
                 color: int = 0xFFFFFFFF) -> None:
+        """Draw a column on the image
+
+        Args:
+        x, y: Start coordinates
+        size: Size of the column in pixel
+        color: The color of the column
+        """
         for i in range(size):
             self.put_pixel(x, y + i, color)
 
     def fill_cell(self, cell_x: int, cell_y: int,
                   color: int = 0xFFFFFFFF) -> None:
+        """Fill a maze cell with a color
+
+        Args:
+        cell_x, cell_y: Cell coordinates
+        color: The color that the cell wil be filed with
+        """
         if (self.cell_size == 2):
             self.put_pixel(cell_x + 1, cell_y + 1, color)
         elif (self.cell_size == 3):
@@ -364,6 +469,12 @@ class MazeDisplay:
                               self.cell_size - 3, color)
 
     def put_pixel(self, x: int, y: int, color: int = 0xFFFFFFFF) -> None:
+        """Put a pixel on the image
+
+        Args:
+        x, y: pixel coordinates
+        color: The pixel color
+        """
         if x < 0 or y < 0 or x >= self.img_width or y >= self.img_height:
             return
         offset = y * self.line_len + x * self.bpp
