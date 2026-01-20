@@ -128,6 +128,8 @@ class MazeDisplay:
             self.regen_maze(self.gen_random_config())
         elif (keycode == 120):  # 'x'
             self.export_config()
+        elif (keycode == 111):  # 'o'
+            self.reset_maze()
         elif (keycode == 61):  # '='
             self.ratio += 1/10
             self.recreate_win()
@@ -144,6 +146,13 @@ class MazeDisplay:
         self._compute_img()
         self.run()
 
+    def reset_maze(self):
+        self.offset = (0, 0)
+        self.zoom = 1
+        self._compute_img()
+        self.draw()
+        self.refresh()
+
     def change_wall_color(self) -> None:
         self.wall_color = choice(self.colors)
         self.draw()
@@ -159,6 +168,7 @@ class MazeDisplay:
         gen = MazeGen(config)
         gen.dfs()
         maze = gen.export_maze_obj()
+        gen.export_maze_file()
         self._unpack_maze(maze)
         self._compute_geometry()
         self._compute_img()
