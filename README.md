@@ -20,6 +20,7 @@ make run
 # Ressources
  - Mlx documentation and exemples
  - ChatGPT to explain the left over questions
+ - Wikipedia
 
 # Config file
 ## Format
