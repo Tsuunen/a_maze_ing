@@ -60,6 +60,11 @@ class MazeDisplay:
         self.height = self.win_height - 50
 
     def _compute_img(self) -> None:
+        try:
+            if (self.img):
+                self.m.mlx_destroy_image(self.mlx, self.img)
+        except Exception:
+            pass
         self.cell_size = (min(self.width // self.cols,
                               self.height // self.rows) - 1) * self.zoom
         self.img_width = self.cols * self.cell_size + 1
