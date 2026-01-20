@@ -21,3 +21,9 @@ class App:
         self.maze_ui.run()
         self.help_ui.run()
         self.m.mlx_loop(self.mlx)
+
+    def destroy(self) -> None:
+        """Clean and free all memory"""
+        self.m.mlx_destroy_window(self.mlx, self.help_ui.win)
+        self.m.mlx_destroy_window(self.mlx, self.maze_ui.win)
+        self.m.mlx_destroy_image(self.mlx, self.maze_ui.img)

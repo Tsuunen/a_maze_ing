@@ -79,11 +79,9 @@ class MazeDisplay:
     def _compute_img(self) -> None:
         """Compute img size and attributes
         """
-        try:
-            if (self.img):
-                self.m.mlx_destroy_image(self.mlx, self.img)
-        except Exception:
-            pass
+        if hasattr(self, "img") and self.img is not None:
+            self.m.mlx_destroy_image(self.mlx, self.img)
+            self.img = None
         self.cell_size = (min(self.width // self.cols,
                               self.height // self.rows) - 1) * self.zoom
         self.img_width = self.cols * self.cell_size + 1
@@ -139,7 +137,6 @@ class MazeDisplay:
         change = False
         if (button == 1):
             self.drag_start = (x, y)
-            self.is_draging = True
         if (button == 4):  # scroll up
             if (self.zoom < 5):
                 self.zoom += 1
