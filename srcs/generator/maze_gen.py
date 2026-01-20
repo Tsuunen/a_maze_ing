@@ -29,13 +29,13 @@ class MazeGen:
         direction: int = self.neighbors(self.entry)[0]
         match direction:
             case 0:
-                self.exit = (self.entry[0] - 1, self.entry[1])
-            case 1:
-                self.exit = (self.entry[0], self.entry[1] + 1)
-            case 2:
-                self.exit = (self.entry[0] + 1, self.entry[1])
-            case 3:
                 self.exit = (self.entry[0], self.entry[1] - 1)
+            case 1:
+                self.exit = (self.entry[0] + 1, self.entry[1])
+            case 2:
+                self.exit = (self.entry[0], self.entry[1] + 1)
+            case 3:
+                self.exit = (self.entry[0] - 1, self.entry[1])
 
         print("entry and exit have the same projection on the shape, \
 exit has been moved")
@@ -49,6 +49,8 @@ exit has been moved")
                 self.entry = (self.entry[0] + 1, self.entry[1])
             else:
                 self.entry = (self.entry[0] - 1, self.entry[1])
+            if self.lst_repr[self.entry[1]][self.entry[0]] != -1:
+                continue
             if self.entry[1] < self.height // 2:
                 self.entry = (self.entry[0], self.entry[1] + 1)
             else:
@@ -59,6 +61,8 @@ exit has been moved")
                 self.exit = (self.exit[0] + 1, self.exit[1])
             else:
                 self.exit = (self.exit[0] - 1, self.exit[1])
+            if self.lst_repr[self.exit[1]][self.exit[0]] != -1:
+                continue
             if self.exit[1] < self.height // 2:
                 self.exit = (self.exit[0], self.exit[1] + 1)
             else:
@@ -69,13 +73,15 @@ exit has been moved")
 
     def project_out(self) -> None:
         """
-        force entry and exit inside the maze in case of special shape
+        force entry and exit inside the maze in case of donut
         """
         while self.lst_repr[self.entry[1]][self.entry[0]] == -1:
             if self.entry[0] > self.width // 2:
                 self.entry = (self.entry[0] + 1, self.entry[1])
             else:
                 self.entry = (self.entry[0] - 1, self.entry[1])
+            if self.lst_repr[self.entry[1]][self.entry[0]] != -1:
+                continue
             if self.entry[1] > self.height // 2:
                 self.entry = (self.entry[0], self.entry[1] + 1)
             else:
@@ -86,6 +92,8 @@ exit has been moved")
                 self.exit = (self.exit[0] + 1, self.exit[1])
             else:
                 self.exit = (self.exit[0] - 1, self.exit[1])
+            if self.lst_repr[self.exit[1]][self.exit[0]] != -1:
+                continue
             if self.exit[1] > self.height // 2:
                 self.exit = (self.exit[0], self.exit[1] + 1)
             else:
@@ -94,10 +102,12 @@ exit has been moved")
         if self.entry == self.exit:
             self.disalign()
 
-    def project_in_square(self, size) -> None:
+    def project_in_square(self, size: int) -> None:
         self.entry = (min(self.entry[0], size - 1),
                       min(self.entry[1], size - 1))
         self.exit = (min(self.exit[0], size - 1), min(self.exit[1], size - 1))
+        if self.entry == self.exit:
+            self.disalign()
         print("entry or exit was outside the maze square, they have been moved\
  in")
 
@@ -113,13 +123,14 @@ exit has been moved")
         """
         self.visited = [[0 for i in range(self.width)]
                         for j in range(self.height)]
+        center: tuple[int, int]
         if self.shape == "rectangle":
             return
 
         if self.shape in ["square", "circle", "donut", "diamond"]:
             size: int = min(self.height, self.width)
-            if self.entry[0] > size or self.entry[1] > size or \
-               self.exit[0] > size or self.exit[1] > size:
+            if self.entry[0] >= size or self.entry[1] >= size or \
+               self.exit[0] >= size or self.exit[1] >= size:
                 self.project_in_square(size)
 
             self.width, self.height = size, size
@@ -129,7 +140,7 @@ exit has been moved")
                             for j in range(self.height)]
 
         if self.shape in ["circle", "donut"]:
-            center: tuple[int, int] = (size // 2, size // 2)
+            center = (size // 2, size // 2)
             for line in range(size):
                 for col in range(size):
                     if sqrt((center[0] - line)**2 + (center[1] - col)**2) \
@@ -139,7 +150,7 @@ exit has been moved")
             self.project_in()
 
         if self.shape == "donut":
-            center: tuple[int, int] = (size // 2, size // 2)
+            center = (size // 2, size // 2)
             for line in range(size):
                 for col in range(size):
                     if sqrt((center[0] - line)**2 + (center[1] - col)**2) \
@@ -150,7 +161,7 @@ exit has been moved")
 
         if self.shape == "diamond":
             from .solver import AStar
-            center: tuple[int, int] = (size // 2, size // 2)
+            center = (size // 2, size // 2)
             for line in range(size):
                 for col in range(size):
                     if AStar.dist(center, (col, line)) > size // 2:
@@ -159,7 +170,7 @@ exit has been moved")
             self.project_in()
 
         if self.shape == "ellipse":
-            center: tuple[int, int] = (self.width // 2, self.height // 2)
+            center = (self.width // 2, self.height // 2)
             for line in range(self.height):
                 for col in range(self.width):
                     if (col - center[0]) ** 2 / center[0] ** 2 + \
@@ -172,7 +183,9 @@ exit has been moved")
         """
         put the '42 stamp' on the maze if possible
         """
-        if self.width < 9 or self.height < 7:
+        if self.width < 9 or self.height < 7 or \
+           (self.shape in ["circle", "ellipse", "diamond", "donut"] and
+               (self.height < 14 or self.width < 14)):
             if error:
                 print("42 logo cannot be represented(maze too small)")
             return
@@ -208,7 +221,7 @@ exit has been moved")
             self.lst_repr[coord[1]][coord[0]] = 15
 
     @staticmethod
-    def hexa(x: int) -> str | None:
+    def hexa(x: int) -> str:
         """
         takes an integer and return it's hexadecimal representation
         """
@@ -219,9 +232,12 @@ exit has been moved")
                 return " "
             return hexa[x]
         except Exception:
-            return None
+            return " "
 
-    def __repr__(self, error: bool):
+    def str_repr(self, error: bool) -> str:
+        """
+        returns a representation of the maze and it s solution as a string
+        """
         repr = ""
         for i in self.lst_repr:
             for j in i:
@@ -237,18 +253,18 @@ exit has been moved")
             repr += " "
         return repr
 
-    def export_maze_file(self):
+    def export_maze_file(self) -> None:
         """
         export the list representation of the maze in a .txt file
         """
         with open(self.output_file, "w") as f:
-            f.write(self.__repr__(1))
+            f.write(self.str_repr(True))
 
-    def export_maze_obj(self) -> None:
+    def export_maze_obj(self) -> Maze:
         """
         export the maze as an object for further treatment
         """
-        repr = self.__repr__(0)
+        repr = self.str_repr(False)
         return Maze(
             maze=repr[:(self.width + 1) * self.height],
             entry=self.entry,
@@ -266,9 +282,12 @@ exit has been moved")
         """
         from .solver import AStar
         solver: AStar = AStar(self)
-        return solver.solve(self)
+        solution: str | None = solver.solve(self)
+        if not solution:
+            raise Exception("an error occured, the maze has no solution")
+        return solution
 
-    def dig_wall(self, pos: list[int, int], direction: int) -> None:
+    def dig_wall(self, pos: tuple[int, int], direction: int) -> None:
         """
         given a pos and a dirrection,
         removes the wall between a position and the destination
@@ -286,7 +305,7 @@ exit has been moved")
             self.lst_repr[pos[1]][pos[0]] -= 8
             self.lst_repr[pos[1]][pos[0] - 1] -= 2
 
-    def neighbors(self, pos: list[int, int]) -> list[int]:
+    def neighbors(self, pos: tuple[int, int]) -> list[int]:
         """
         takes a pos in the currently generating maze (pos[x, y])
         return the list of unexplored neighbors
@@ -341,8 +360,7 @@ exit has been moved")
         uses randomized depth first search algorithm to genarate th maze
         """
         self.shape_stamp()
-        self.visited[self.exit[1]][self.exit[0]] = 1
-        self.ft_stamp(1)
+        self.ft_stamp(True)
 
         if not self.is_perfect:
             self.scramble()
@@ -350,6 +368,9 @@ exit has been moved")
         pos: list[tuple[int, int]] = [self.entry]
         while pos:
             self.visited[pos[-1][1]][pos[-1][0]] = 1
+            if pos[-1] == self.exit:
+                pos.pop()
+                continue
             neighbors: list[int] = self.neighbors(pos[-1])
             if not neighbors:
                 pos.pop()
@@ -366,12 +387,3 @@ exit has been moved")
             if neighbors[0] == 3:
                 pos.append((pos[-1][0] - 1, pos[-1][1]))
         self.remove_square_holes()
-
-        for line in range(self.height):
-            for col in range(self.width):
-                if self.visited[line][col] == 1:
-                    self.visited[line][col] = 0
-
-        self.ft_stamp(0)
-        self.dig_wall(self.exit, random.choice(self.neighbors(self.exit)))
-        self.visited = None

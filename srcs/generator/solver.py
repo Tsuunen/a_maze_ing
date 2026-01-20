@@ -4,8 +4,8 @@ from .maze_gen import MazeGen
 class AStar:
     def __init__(self, maze: MazeGen):
         self.open = [maze.entry]
-        self.closed = set()
-        self.came_from = dict()
+        self.closed: set[tuple[int, int]] = set()
+        self.came_from: dict[tuple[int, int], tuple[int, int]] = dict()
         self.g = {maze.entry: 0}
         self.f = {maze.entry: self.dist(maze.entry, maze.exit)}
 
@@ -17,7 +17,11 @@ class AStar:
         return abs(src[0] - dest[0]) + abs(src[1] - dest[1])
 
     @staticmethod
-    def neighbors(maze: MazeGen, pos: tuple[int, int]):
+    def neighbors(maze: MazeGen, pos: tuple[int, int]) \
+            -> list[tuple[int, int]]:
+        """
+        return the coordinate of the avaible neighbors from 'pos' cell
+        """
         neighbors_coords: list[tuple[int, int]] = []
         walls: int = maze.lst_repr[pos[1]][pos[0]]
 
@@ -35,8 +39,6 @@ class AStar:
         """
         finds the node with the lowest f value
         """
-        if not self.open:
-            return None
         best_node = self.open[0]
         for node in self.open[1:]:
             if self.f[best_node] > self.f[node]:
