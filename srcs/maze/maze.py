@@ -1,6 +1,6 @@
 from mlx import Mlx
 from .parser import Maze
-from ..config.parser import Config
+from ..mazegen.parser import Config
 from .help_display import HelpDisplay
 from .maze_display import MazeDisplay
 

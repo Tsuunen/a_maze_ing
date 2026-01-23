@@ -1,6 +1,6 @@
-from srcs.config.parser import ConfigParser
 from srcs.maze.maze import App
-from srcs.generator.maze_gen import MazeGen
+from srcs.mazegen.maze_gen import MazeGen
+from srcs.mazegen.parser import ConfigParser
 from sys import argv
 
 

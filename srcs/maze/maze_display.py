@@ -1,8 +1,7 @@
 from random import randint, choice
-from ..generator.maze_gen import MazeGen
+from ..mazegen.maze_gen import (Config, MazeGen)
 from math import ceil
 from .parser import Maze
-from ..config.parser import Config
 from mlx import Mlx
 from typing import Any, Tuple
 
