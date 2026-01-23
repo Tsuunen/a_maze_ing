@@ -18,8 +18,7 @@ class MazeDisplay:
 
     def __init__(self, m: Mlx, mlx: Any, maze: Maze, config: Config) -> None:
         self.config = config
-        # self.ratio = 8/10
-        self.ratio = 3/10
+        self.ratio = 5/10
         self.m = m
         self.mlx = mlx
         self.zoom = 1
@@ -237,8 +236,8 @@ class MazeDisplay:
         The new random Config
         """
         self.m.mlx_clear_window(self.mlx, self.win)
-        width = randint(2, 250)
-        height = randint(2, 250)
+        width = randint(3, 250)
+        height = randint(3, 250)
         entry = (randint(0, width - 1), randint(0, height - 1))
         exit = (randint(0, width - 1), randint(0, height - 1))
         return (Config(
