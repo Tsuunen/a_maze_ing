@@ -23,4 +23,4 @@ lint:
 
 lint-strict:
 	@flake8 $(FILES)
-	@mypy $(MAIN) srcs $(MYPY_FLAGS) --strict
+	@mypy $(MAIN) srcs --strict $(MYPY_FLAGS)
