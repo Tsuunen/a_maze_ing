@@ -20,6 +20,7 @@ make run
 # Ressources
  - Mlx documentation and exemples
  - ChatGPT to explain the left over questions
+ - Wikipedia
 
 # Config file
 ## Format
@@ -59,7 +60,7 @@ SHAPE=donut
 
 # Maze generation
 ## Maze algorithm
-ICI LEQUEL ET POURQUOI ET CE QUI EST REUTILISABLE ET COMMENT
+for maze generation we used a randomized dfs algorithm, wich always creates a perfect maze, so a scramble function has been implemented to remove random walls inside the maze, for the solving part, we could have got it when generating but we thought it would be more interesting to implement the A* algorithm.
 
 # Team and Management
 ## Team

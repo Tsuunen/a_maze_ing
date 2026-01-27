@@ -1,6 +1,6 @@
 from ..parser import Parser
 from pydantic import ValidationError
-from ..generator.maze_gen import Maze
+from ..mazegen.maze_gen import Maze
 
 
 class MazeParser(Parser):

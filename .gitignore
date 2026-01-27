@@ -3,3 +3,4 @@ __pycache__
 env
 A-Maze-ing
 *.txt
+*.egg-info*
