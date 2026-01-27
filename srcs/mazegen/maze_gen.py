@@ -1,6 +1,6 @@
 import random
 from math import sqrt
-from srcs.config.config_parser import Config
+from srcs.mazegen.config_parser import Config
 from typing import Tuple
 from typing_extensions import Self
 from pydantic import (BaseModel, Field, field_validator,

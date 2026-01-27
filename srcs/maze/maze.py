@@ -1,6 +1,6 @@
 from mlx import Mlx
-from srcs.generator.maze_gen import Maze
-from srcs.config.config_parser import Config
+from srcs.mazegen.maze_gen import Maze
+from srcs.mazegen.config_parser import Config
 from .help_display import HelpDisplay
 from .maze_display import MazeDisplay
 
