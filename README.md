@@ -1,7 +1,7 @@
 *This project has been created as part of the 42 curriculum by nahecre and relaforg*
 
 # Description
-The A-maze-ing project introduces ourselves to graphic programming. We have to implement a maze generation algorithm, a maze solver and a graphical interface in order to display the generated maze. The bonuses are really free, we choose to push on all aspects of the project. We now support 6 differents maze's shapes (rectabgle, square, circle, donut, diamond, ellipse). The solver is an A* algorithm for fast and efficient solving. On the display side, we choose to separate the app on two window, the main one displaying the maze and the seed and the second one with the buttons. The main window is resizeable with the '-' and '=' keys, you can also zoom onto the maze and moving into the maze with mouse draging.
+The A-maze-ing project introduces ourselves to graphic programming. We have to implement a maze generation algorithm, a maze solver and a graphical interface in order to display the generated maze. The bonuses are really free, we chose to push on all aspects of the project. We now support 6 differents maze's shapes (rectabgle, square, circle, donut, diamond, ellipse). The solver is an A* algorithm for fast and efficient solving. On the display side, we chose to separate the app on two window, the main one displaying the maze and the seed and the second one with the buttons. The main window is resizeable with the '-' and '=' keys, you can also zoom onto the maze and moving into the maze with mouse draging.
 
 # Insctructions
 ### Dependencies
