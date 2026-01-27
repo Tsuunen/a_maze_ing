@@ -12,7 +12,7 @@ pip install mazegen-1.0.0-py3-none-any.whl
 
 ```python
 from mazegen import MazeGen
-from mazegen.parser import Config
+from mazegen.config_parser import Config
 
 # Create configuration
 config = Config(
@@ -123,7 +123,7 @@ Configuration object for maze generation.
 ### Simple rectangular maze
 ```python
 from mazegen import MazeGen
-from mazegen.parser import Config
+from mazegen.config_parser import Config
 
 config = Config(
     width=10, 

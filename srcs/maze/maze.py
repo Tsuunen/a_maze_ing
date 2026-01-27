@@ -1,6 +1,6 @@
-from mlx import Mlx  # type: ignore[import-untyped]
-from .parser import Maze
-from ..mazegen.parser import Config
+from mlx import Mlx
+from srcs.mazegen.maze_gen import Maze
+from srcs.mazegen.config_parser import Config
 from .help_display import HelpDisplay
 from .maze_display import MazeDisplay
 

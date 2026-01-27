@@ -1,9 +1,10 @@
 from random import randint, choice
-from ..mazegen.maze_gen import (Config, MazeGen)
+from srcs.mazegen.maze_gen import MazeGen
 from math import ceil
-from .parser import Maze
+from srcs.mazegen.config_parser import Config
 from mlx import Mlx
 from typing import Any, Tuple
+from srcs.mazegen.maze_gen import Maze
 
 
 class MazeDisplay:
