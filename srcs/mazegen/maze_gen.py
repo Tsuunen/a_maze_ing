@@ -436,6 +436,14 @@ exit has been moved")
                     not (self.lst_repr[line][col + 1] & 1 or
                          self.lst_repr[line][col + 1] & 4):
                     self.lst_repr[line][col] = random.choice([7, 11, 13, 15])
+                    if self.lst_repr[line][col] & 1:
+                        self.lst_repr[line - 1][col] += 4
+                    if self.lst_repr[line][col] & 2:
+                        self.lst_repr[line][col + 1] += 8
+                    if self.lst_repr[line][col] & 4:
+                        self.lst_repr[line + 1][col] += 1
+                    if self.lst_repr[line][col] & 8:
+                        self.lst_repr[line][col - 1] += 2
 
     def dfs(self) -> None:
         """
