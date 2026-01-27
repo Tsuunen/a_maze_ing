@@ -23,7 +23,7 @@ make run
 # Config file
 ## Format
 
-| Key | Mandatory | Format | Exemple | Description |
+| Key | Mandatory | Format | Example | Description |
 |----|------------|--------|---------|-------------|
 | `WIDTH` | Yes | int | `129` | Maze width |
 | `HEIGHT` | Yes | int | `97` | Maze height |
