@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Dict
 from typing_extensions import Self
 from pydantic import (BaseModel, Field, field_validator, ValidationInfo,
                       ValidationError, model_validator)
@@ -95,7 +95,7 @@ class ConfigParser(Parser):
         Raises:
         A formatted error message
         """
-        config = {}
+        config: Dict[str, str] = {}
         for line in self.iter_lines():
             line = line.strip()
             if (not len(line) or line[0] == "#"):
@@ -103,6 +103,9 @@ class ConfigParser(Parser):
             opt = line.split("=")
             if (len(opt) != 2):
                 continue
+            if (config.get(opt[0].lower()) is not None):
+                raise ValueError(
+                    f"You cannot set {opt[0]}, it has already been given")
             config[opt[0].lower()] = opt[1]
         try:
             return (Config.model_validate(config))
