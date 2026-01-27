@@ -18,8 +18,10 @@ clean:
 
 lint:
 	@flake8 $(FILES)
-	@mypy $(FILES) $(MYPY_FLAGS)
+	mypy srcs $(MYPY_FLAGS)
+	mypy $(MAIN) $(MYPY_FLAGS)
 
 lint-strict:
 	@flake8 $(FILES)
-	@mypy $(FILES) $(MYPY_FLAGS) --strict
+	@mypy srcs $(MYPY_FLAGS) --strict
+	@mypy $(MAIN) $(MYPY_FLAGS) --strict

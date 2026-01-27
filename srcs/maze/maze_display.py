@@ -1,10 +1,10 @@
 from random import randint, choice
-from ..generator.maze_gen import MazeGen
+from srcs.generator.maze_gen import MazeGen
 from math import ceil
-from .parser import Maze
-from ..config.parser import Config
-from mlx import Mlx  # type: ignore[import-untyped]
+from srcs.config.config_parser import Config
+from mlx import Mlx
 from typing import Any, Tuple
+from srcs.generator.maze_gen import Maze
 
 
 class MazeDisplay:
