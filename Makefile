@@ -14,8 +14,8 @@ install:
 	pip install -r requirements.txt
 
 clean:
-	find . -type d -name "__pycache__"
-	rm -rf __pycache__ .mypy_cache
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	rm -rf .mypy_cache
 
 lint:
 	@flake8 $(FILES)
