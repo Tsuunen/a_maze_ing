@@ -1,0 +1,4 @@
+pydantic
+typing
+typing-extensions
+mlx-2.2.1-py3-none-any.whl

@@ -4,3 +4,4 @@ env
 A-Maze-ing
 *.txt
 *.egg-info*
+!requirements.txt
