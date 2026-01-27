@@ -14,6 +14,7 @@ install:
 	pip install -r requirements.txt
 
 clean:
+	find . -type d -name "__pycache__"
 	rm -rf __pycache__ .mypy_cache
 
 lint:
